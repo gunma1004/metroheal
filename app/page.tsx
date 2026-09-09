@@ -2,9 +2,8 @@ import { Metadata } from "next";
 import MainClientUI from "./MainClientUI";
 
 export const metadata: Metadata = {
-  title: "메트로힐 | 서울·경기·인천 프리미엄 힐링 & 바디 테라피 플랫폼",
-  description:
-    "서울, 경기, 인천 전 지역 엄선된 웰니스 바디 케어, 아로마, 스웨디시 힐링 제휴 정보 안내. 내 주변 맞춤 테라피 샵을 메트로힐에서 간편하게 확인하세요.",
+  title: "메트로힐 | 수도권 프리미엄 힐링 & 바디 테라피 플랫폼",
+  description: "서울·경기·인천 엄선된 아로마, 스웨디시 웰니스 테라피 제휴 정보를 메트로힐에서 확인하세요.",
   keywords: [
     "메트로힐",
     "서울 테라피",
