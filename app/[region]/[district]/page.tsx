@@ -190,7 +190,6 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const locationKeyword = `${regionName} ${districtName} ${dongName}`.trim();
   const simpleLocation = dongName ? `${districtName} ${dongName}` : districtName;
 
-  // 지역명 해시 연산 -> 40가지 패턴 중 1개 일관 배분
   const charSum = (locationKeyword + dongName + districtName)
     .split("")
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -206,7 +205,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
   return {
     title: {
-      absolute: finalTitle, // 템플릿 중복 없이 패턴 타이틀 그대로 출력
+      absolute: finalTitle,
     },
     description: finalDescription,
     alternates: {
@@ -247,7 +246,7 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
 
   const simpleLocation = dongName ? `${districtName} ${dongName}` : districtName;
 
-  // 메인 제휴 5개 샵 연동 (지역 파라미터 전달)
+  // 🌟 동 페이지 제휴 샵 리스트 (shop1.jpg ~ shop5.jpg 이미지 명시적 연결)
   const localShops = [
     {
       id: 1,
@@ -316,7 +315,7 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
 
       <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-10">
         
-        {/* 상단 지역 대표 배너 (클린 카피) */}
+        {/* 상단 지역 대표 배너 */}
         <section className="relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] bg-[#141418]">
           <div className="p-6 md:p-10 space-y-2">
             <span className="text-amber-400 text-xs font-black tracking-widest uppercase mb-1 block">
@@ -347,17 +346,19 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
             {localShops.map((lShop) => (
               <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-4 flex gap-4 items-center shadow-lg transition-all group relative">
                 
-                {/* 🌟 샵 상세페이지 접속 시 해당 지역명을 넘겨주어 샵 타이틀이 동적 매칭되도록 연동 */}
                 <Link 
                   href={`/shop/${lShop.id}?region=${encodeURIComponent(simpleLocation)}`} 
                   className="absolute inset-0 z-10" 
                   aria-label={`${lShop.name} 상세페이지 보기`} 
                 />
 
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-neutral-800 flex items-center justify-center text-amber-400/60 font-black text-xl border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0">
-                  Care
-                </div>
-                
+                {/* 🌟 동 페이지 샵 카드 이미지 명시적 로드 */}
+                <img 
+                  src={lShop.image} 
+                  alt={lShop.name} 
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
+                />
+
                 <div className="flex-1 min-w-0">
                   <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
                     {lShop.name}

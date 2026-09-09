@@ -102,7 +102,7 @@ const regionData: Record<string, { name: string; districts: Record<string, { nam
   }
 };
 
-// 메인 페이지 샵 목록: 스팸성/특정 키워드 없이 클린한 웰니스 소개문 구성
+// 메인 제휴 샵 리스트 (public 폴더의 shop1.jpg ~ shop5.jpg 이미지 명시적 연결)
 const initialShops = [
   {
     id: 1,
@@ -218,53 +218,37 @@ export default function MainClientUI() {
   return (
     <div className="bg-[#070709] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
       
-      {/* 헤더 영역 */}
-      <header className="sticky top-0 z-50 bg-[#070709]/90 backdrop-blur-xl border-b border-amber-500/20 px-4 py-3.5 shadow-[0_4px_20px_rgba(245,158,11,0.08)]">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-black text-black text-xl shadow-[0_0_12px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform">
-              M
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black tracking-wider bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
-                메트로힐
-              </span>
-              <span className="text-[10px] text-gray-400 tracking-wider">SEOUL · GYEONGGI · INCHEON</span>
-            </div>
-          </Link>
-          
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold">
-              실시간 힐링 테라피 안내
-            </span>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-12">
         
-        {/* 메인 비주얼 섹션 */}
+        {/* 상단 메인 배너 (banner.jpg 이미지 명시적 적용) */}
         <section className="text-center my-2">
           <div className="overflow-hidden rounded-3xl border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] relative h-60 md:h-72 flex items-center justify-center p-6 bg-gradient-to-b from-[#141418] to-[#0a0a0d]">
+            
+            {/* 🌟 배경 배너 이미지 명시적 로드 */}
+            <div className="absolute inset-0 z-0">
+              <img 
+                src="/banner.jpg" 
+                alt="메트로힐 메인 배너" 
+                className="w-full h-full object-cover filter brightness-[0.4] scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+            </div>
+
             <div className="relative z-10 space-y-3">
               <span className="inline-block px-3.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-xs tracking-wider">
                 수도권 힐링 테라피 큐레이션 플랫폼
               </span>
-              <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
+              <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">
                 서울·경기·인천 <span className="bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">프리미엄 바디 웰니스 가이드</span>
               </h1>
-              <p className="text-gray-300 text-xs md:text-sm font-medium max-w-lg mx-auto leading-relaxed">
+              <p className="text-gray-200 text-xs md:text-sm font-medium max-w-lg mx-auto leading-relaxed drop-shadow">
                 엄선된 전문 테라피스트들의 1:1 맞춤 바디 릴렉싱 프로그램을 메트로힐에서 손쉽게 비교하고 확인하세요.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 베스트 제휴 샵 카드 (무작위 셔플 노출) */}
+        {/* 베스트 제휴 샵 카드 (shop1.jpg ~ shop5.jpg 이미지 정상 출력) */}
         <section className="space-y-6">
           <div className="text-center mb-4">
             <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">RECOMMENDED PARTNERS</p>
@@ -279,9 +263,13 @@ export default function MainClientUI() {
                 
                 <Link href={`/shop/${lShop.id}`} className="absolute inset-0 z-10" aria-label={`${lShop.name} 상세페이지 보기`} />
 
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-neutral-800 flex items-center justify-center text-amber-400/60 font-black text-xl border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0">
-                  Care
-                </div>
+                {/* 🌟 샵 카드 이미지 명시적 로드 */}
+                <img 
+                  src={lShop.image} 
+                  alt={lShop.name} 
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
+                />
+
                 <div className="flex-1 min-w-0">
                   <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
                     {lShop.name}
@@ -424,7 +412,7 @@ export default function MainClientUI() {
             <div className="bg-[#101014] p-5 rounded-2xl border border-white/5 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-amber-400 font-black text-sm">★★★★★ 5.0</span>
-                <span className="text-[11px] text-gray-500">인천 송도 이용자</span>
+                <span className="text-[11px] text-gray-505">인천 송도 이용자</span>
               </div>
               <p className="text-xs text-gray-300 leading-relaxed">
                 &quot;플랫폼에 등록된 정보가 투명해서 좋았고 상담도 친절했습니다. 번거롭게 찾아다닐 필요 없이 편리하게 이용했습니다.&quot;
