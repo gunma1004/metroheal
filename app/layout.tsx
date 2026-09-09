@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "서울·경기·인천 전 지역 엄선된 웰니스 바디 케어, 아로마, 스웨디시 힐링 샵 정보. 내 주변 테라피 샵 위치 및 코스 정보를 메트로힐에서 간편하게 확인하세요.",
+    "서울, 경기, 인천 전 지역 엄선된 웰니스 바디 케어, 아로마, 스웨디시 힐링 샵 정보. 내 주변 테라피 샵 위치 및 코스 정보를 메트로힐에서 간편하게 확인하세요.",
   alternates: {
     canonical: SITE_URL,
   },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   verification: {
     other: {
-      "naver-site-verification": "768436618b4220619b86a6ca368bb858ce471561",
+      "naver-site-verification": "c70185582dc09b3823cadfca853aa96f4aac207b",
     },
   },
 };
