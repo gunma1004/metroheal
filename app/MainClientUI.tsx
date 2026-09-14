@@ -102,7 +102,6 @@ const regionData: Record<string, { name: string; districts: Record<string, { nam
   }
 };
 
-// 메인 제휴 샵 리스트 (public 폴더의 shop1.jpg ~ shop5.jpg 이미지 명시적 연결)
 const initialShops = [
   {
     id: 1,
@@ -172,8 +171,6 @@ export default function MainClientUI() {
   const [selectedRegion, setSelectedRegion] = useState("seoul");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedDong, setSelectedDong] = useState("");
-  
-  // 새로고침 시 무작위 순서 셔플
   const [shops, setShops] = useState(initialShops);
 
   useEffect(() => {
@@ -196,6 +193,7 @@ export default function MainClientUI() {
     setSelectedDong("");
   };
 
+  // 🌟 구/동 디렉토리 구조로 즉시 연결
   const handleSearch = () => {
     if (!selectedDistrict) {
       alert("원하시는 지역(구/시/군)을 먼저 선택해주세요!");
@@ -204,10 +202,10 @@ export default function MainClientUI() {
     const districtObj = regionData[selectedRegion]?.districts[selectedDistrict];
     const districtName = districtObj ? districtObj.name : selectedDistrict;
     
-    const baseUrl = `/${selectedRegion}/${encodeURIComponent(districtName)}`;
+    // 동이 선택되어 있으면 /[region]/[district]/[dong] 으로 이동
     const targetUrl = selectedDong 
-      ? `${baseUrl}?dong=${encodeURIComponent(selectedDong)}` 
-      : baseUrl;
+      ? `/${selectedRegion}/${encodeURIComponent(districtName)}/${encodeURIComponent(selectedDong)}`
+      : `/${selectedRegion}/${encodeURIComponent(districtName)}`;
     
     window.location.href = targetUrl;
   };
@@ -220,11 +218,9 @@ export default function MainClientUI() {
       
       <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-12">
         
-        {/* 상단 메인 배너 (banner.jpg 이미지 명시적 적용) */}
+        {/* 상단 메인 배너 */}
         <section className="text-center my-2">
           <div className="overflow-hidden rounded-3xl border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] relative h-60 md:h-72 flex items-center justify-center p-6 bg-gradient-to-b from-[#141418] to-[#0a0a0d]">
-            
-            {/* 🌟 배경 배너 이미지 명시적 로드 */}
             <div className="absolute inset-0 z-0">
               <img 
                 src="/banner.jpg" 
@@ -248,7 +244,7 @@ export default function MainClientUI() {
           </div>
         </section>
 
-        {/* 베스트 제휴 샵 카드 (shop1.jpg ~ shop5.jpg 이미지 정상 출력) */}
+        {/* 🌟 메인 추천 제휴 샵 (이동 링크 제거, 전화연결만 작동) */}
         <section className="space-y-6">
           <div className="text-center mb-4">
             <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">RECOMMENDED PARTNERS</p>
@@ -259,19 +255,19 @@ export default function MainClientUI() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {shops.map((lShop) => (
-              <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-4 flex gap-4 items-center shadow-md transition-all group relative">
-                
-                <Link href={`/shop/${lShop.id}`} className="absolute inset-0 z-10" aria-label={`${lShop.name} 상세페이지 보기`} />
-
-                {/* 🌟 샵 카드 이미지 명시적 로드 */}
+              <div 
+                key={lShop.id} 
+                className="bg-[#111114] border border-amber-500/20 rounded-2xl p-4 flex gap-4 items-center shadow-md"
+              >
+                {/* ❌ 샵 상세 이동 링크를 아예 두지 않음 */}
                 <img 
                   src={lShop.image} 
                   alt={lShop.name} 
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 flex-shrink-0" 
                 />
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
+                  <h3 className="font-extrabold text-sm md:text-base text-white truncate">
                     {lShop.name}
                   </h3>
                   <p className="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-snug">
@@ -280,10 +276,10 @@ export default function MainClientUI() {
                   <div className="mt-2.5 flex items-center justify-between">
                     <span className="text-xs font-black text-amber-400">{lShop.price}</span>
                     <a 
-                      href={`tel:${lShop.phone}`} 
-                      className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-colors relative z-20"
+                      href={`tel:${lShop.phone.replace(/-/g, "")}`} 
+                      className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-colors active:scale-95 flex items-center gap-1"
                     >
-                      전화연결
+                      <span>📞</span> 전화연결
                     </a>
                   </div>
                 </div>
