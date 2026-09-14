@@ -4,14 +4,15 @@ import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{
-    region: string;
-    district: string;
-    id: string;
+    region?: string;
+    district?: string;
+    id?: string;
+    shopId?: string;
   }>;
 }
 
 // 🌐 영문 시/도 코드를 한글명으로 변환
-function getRegionFullName(region: string): string {
+function getRegionFullName(region?: string): string {
   switch (region?.toLowerCase()) {
     case "seoul": return "서울";
     case "gyeonggi": return "경기";
@@ -21,7 +22,7 @@ function getRegionFullName(region: string): string {
 }
 
 // 🛠️ 이중 디코딩 방어 함수
-function safeDecode(str: string): string {
+function safeDecode(str?: string): string {
   if (!str) return "";
   let decoded = str;
   try {
@@ -36,7 +37,7 @@ function safeDecode(str: string): string {
   return decoded.trim();
 }
 
-function parseLocationText(region: string, district: string): string {
+function parseLocationText(region?: string, district?: string): string {
   const regionName = getRegionFullName(region);
   const decodedDistrict = safeDecode(district);
   return `${regionName} ${decodedDistrict}`.replace(/\s+/g, " ").trim();
@@ -130,13 +131,13 @@ const shopData: Record<string, {
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { region, district, id } = await params;
-  const shop = shopData[id] || shopData["1"];
+  const resolvedParams = await params;
+  const targetId = resolvedParams.id || resolvedParams.shopId || "1";
+  const shop = shopData[targetId] || shopData["1"];
 
-  const currentRegion = parseLocationText(region, district);
+  const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district);
 
-  // 해시 인덱스 계산 (0~29)
-  const charSum = (currentRegion + shop.cleanName + id + "metroheal_seo").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const charSum = (currentRegion + shop.cleanName + targetId + "metroheal_seo").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const variantIndex = charSum % 30;
 
   const titleVariants = [
@@ -266,12 +267,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `${currentRegion} 출장 심야 마사지`
     ],
     alternates: {
-      canonical: `https://metroheal.netlify.app/${region}/${encodeURIComponent(safeDecode(district))}/shop/${id}`,
+      canonical: `https://metroheal.netlify.app/${resolvedParams.region}/${encodeURIComponent(safeDecode(resolvedParams.district))}/shop/${targetId}`,
     },
     openGraph: {
       title: pageTitle,
       description: pageDescription,
-      url: `https://metroheal.netlify.app/${region}/${encodeURIComponent(safeDecode(district))}/shop/${id}`,
+      url: `https://metroheal.netlify.app/${resolvedParams.region}/${encodeURIComponent(safeDecode(resolvedParams.district))}/shop/${targetId}`,
       siteName: "메트로힐",
       locale: "ko_KR",
       type: "article",
@@ -280,14 +281,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ShopDetailPage({ params }: PageProps) {
-  const { region, district, id } = await params;
-  const shop = shopData[id];
+  const resolvedParams = await params;
+  // 🌟 id 또는 shopId 어떤 폴더명이어도 안전하게 수신
+  const targetId = resolvedParams.id || resolvedParams.shopId || "1";
+  const shop = shopData[targetId] || shopData["1"];
 
-  if (!shop) {
-    notFound();
-  }
-
-  const currentRegion = parseLocationText(region, district);
+  const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district);
 
   return (
     <div className="bg-[#050505] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black pb-28">
@@ -308,10 +307,10 @@ export default async function ShopDetailPage({ params }: PageProps) {
           </Link>
           
           <Link 
-            href={`/${region}/${encodeURIComponent(safeDecode(district))}`}
+            href={`/${resolvedParams.region}/${encodeURIComponent(safeDecode(resolvedParams.district))}`}
             className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all"
           >
-            ← {safeDecode(district)} 목록
+            ← {safeDecode(resolvedParams.district)} 목록
           </Link>
         </div>
       </header>
