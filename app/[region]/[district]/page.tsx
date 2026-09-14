@@ -29,7 +29,7 @@ function safeDecode(str: string): string {
 }
 
 // -------------------------------------------------------------
-// 🎯 샵 페이지와 겹치지 않는 40가지 클린 웰니스 SEO 패턴 (스팸 트리거 100% 배제)
+// 🎯 40가지 클린 웰니스 SEO 패턴 (스팸 트리거 100% 배제)
 // -------------------------------------------------------------
 const SEO_PATTERNS = [
   /* 0 */ {
@@ -260,51 +260,6 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
     ? `${regionName} ${districtName} (${dongName})` 
     : `${regionName} ${districtName}`;
 
-  const simpleLocation = dongName ? `${districtName} ${dongName}` : districtName;
-
-  const localShops = [
-    {
-      id: 1,
-      name: `한국미녀테라피 (${simpleLocation})`,
-      desc: "지친 일상에 맞춤형 활력 충전! 전문 테라피스트의 정성 어린 감성 바디 테라피",
-      phone: "0507-1280-3299",
-      price: "90,000원부터~",
-      image: "/shop1.jpg"
-    },
-    {
-      id: 2,
-      name: `오늘밤테라피 (${simpleLocation})`,
-      desc: "최고급 천연 아로마 오일을 활용한 전신 이완 및 림프 순환 케어 전문 프로그램",
-      phone: "0507-1280-3191",
-      price: "60,000원부터~",
-      image: "/shop2.jpg"
-    },
-    {
-      id: 3,
-      name: `주주홈타이 (${simpleLocation})`,
-      desc: "재방문율 높은 안심 케어! 철저한 위생 관리와 품격 있는 정통 타이 & 릴렉싱",
-      phone: "0507-1280-3180",
-      price: "60,000원부터~",
-      image: "/shop3.jpg"
-    },
-    {
-      id: 4,
-      name: `한국골든테라피 (${simpleLocation})`,
-      desc: "전문 힐러진의 맞춤형 바디 관리, 시간대별 편안한 VIP 피로회복 솔루션",
-      phone: "0507-1280-3361",
-      price: "60,000원부터~",
-      image: "/shop4.jpg"
-    },
-    {
-      id: 5,
-      name: `퀸즈홈테라피 (${simpleLocation})`,
-      desc: "수도권 전지역 엄선된 파트너! 정직한 안내와 함께하는 프라이빗 힐링 테라피",
-      phone: "0507-1280-3222",
-      price: "60,000원부터~",
-      image: "/shop5.jpg"
-    }
-  ];
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -345,56 +300,8 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
           </div>
         </section>
 
-        {/* 클라이언트 사이드 키워드 인젝션 영역 */}
+        {/* 🌟 샵 리스트는 ClientTextMixer 컴포넌트 하나로만 렌더링 (중복 방지) */}
         <ClientTextMixer region={region} district={districtName} />
-
-        {/* 제휴업체 5개 카드리스트 */}
-        <section className="space-y-6">
-          <div className="text-center">
-            <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">RECOMMENDED PARTNERS</p>
-            <h2 className="text-xl md:text-2xl font-black text-white mt-1">
-              {fullTitle} 추천 제휴 샵 (5곳)
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {localShops.map((lShop) => (
-              <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-4 flex gap-4 items-center shadow-lg transition-all group relative">
-                
-                {/* 🌟 핵심 수정: 신규 계층형 URL 구조로 이동 */}
-                <Link 
-                  href={`/${region}/${encodeURIComponent(districtName)}/shop/${lShop.id}`} 
-                  className="absolute inset-0 z-10" 
-                  aria-label={`${lShop.name} 상세페이지 보기`} 
-                />
-
-                <img 
-                  src={lShop.image} 
-                  alt={lShop.name} 
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
-                />
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
-                    {lShop.name}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
-                    {lShop.desc}
-                  </p>
-                  <div className="mt-2.5 flex items-center justify-between">
-                    <span className="text-xs font-black text-amber-400">{lShop.price}</span>
-                    <a 
-                      href={`tel:${lShop.phone}`} 
-                      className="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black font-black text-xs px-3.5 py-1.5 rounded-xl shadow transition-all transform active:scale-95 relative z-20"
-                    >
-                      전화연결
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* 건강 웰니스 칼럼 섹션 */}
         <section className="bg-[#0e0e12] p-6 md:p-8 rounded-3xl border border-white/10 space-y-4">
