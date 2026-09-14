@@ -1,25 +1,19 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{
-    region: string;
-    district: string;
-    dong: string;
+    region?: string;
+    district?: string;
+    dong?: string;
+    id?: string;
+    shopId?: string;
   }>;
 }
 
 // 🌐 영문 시/도 코드를 한글명으로 변환
-function getRegionFullName(region: string): string {
-  switch (region?.toLowerCase()) {
-    case "seoul": return "서울특별시";
-    case "gyeonggi": return "경기도";
-    case "incheon": return "인천광역시";
-    default: return region || "";
-  }
-}
-
-function getRegionShortName(region: string): string {
+function getRegionFullName(region?: string): string {
   switch (region?.toLowerCase()) {
     case "seoul": return "서울";
     case "gyeonggi": return "경기";
@@ -29,7 +23,7 @@ function getRegionShortName(region: string): string {
 }
 
 // 🛠️ 이중 디코딩 방어 함수
-function safeDecode(str: string): string {
+function safeDecode(str?: string): string {
   if (!str) return "";
   let decoded = str;
   try {
@@ -44,160 +38,181 @@ function safeDecode(str: string): string {
   return decoded.trim();
 }
 
-// -------------------------------------------------------------
-// 🎯 동 페이지 전용: 스팸 키워드 100% 배제 클린 웰니스 SEO 패턴
-// -------------------------------------------------------------
-const DONG_SEO_PATTERNS = [
-  /* 0 */ {
-    title: (loc: string) => `${loc} 웰니스 마사지 제휴 안내 | 스웨디시 & 타이마사지`,
-    desc: (loc: string) => `${loc} 인근 쾌적한 웰니스 마사지 제휴점 안내. 투명한 정찰제 가격과 릴렉스 바디케어 프로그램을 확인하세요.`
+// 🌟 구 + 동 이름을 합쳐서 완벽한 동 단위 키워드 생성
+function parseLocationText(region?: string, district?: string, dong?: string): string {
+  const regionName = getRegionFullName(region);
+  const decodedDistrict = safeDecode(district);
+  const decodedDong = safeDecode(dong);
+  return `${regionName} ${decodedDistrict} ${decodedDong}`.replace(/\s+/g, " ").trim();
+}
+
+const shopData: Record<string, {
+  name: string;
+  cleanName: string;
+  phone: string;
+  badge: string;
+  image: string;
+  desc: string;
+  courses: { name: string; time: string; price: string; desc: string }[];
+  features: string[];
+}> = {
+  "1": {
+    name: "🔥 한국미녀테라피",
+    cleanName: "한국미녀테라피",
+    phone: "0507-1280-3299",
+    badge: "실시간 만족도 1위",
+    image: "/shop1.jpg",
+    desc: "전지역 25분 신속 방문! 출장 타이 마사지, 출장 아로마 마사지, 출장 릴렉스 마사지 전문 제휴처입니다. 숙련된 테라피스트가 계신 곳으로 직접 찾아가 굳은 근육과 묵은 피로를 시원하게 풀어드립니다.",
+    courses: [
+      { name: "출장 릴렉스 마사지 (기본)", time: "60분", price: "110,000원", desc: "뭉친 어깨와 등 근육을 부드럽게 이완시키는 맞춤형 출장 릴렉스 마사지 코스" },
+      { name: "출장 아로마 마사지 (순환)", time: "90분", price: "130,000원", desc: "천연 에센셜 오일을 사용하여 전신 혈액순환과 피로 해소를 돕는 프리미엄 출장 아로마 마사지" },
+      { name: "출장 스웨디시 릴렉스 마사지", time: "60분", price: "140,000원", desc: "감성적인 터치로 심신을 포근하게 녹여주는 최고급 스웨디시 출장 릴렉스 마사지" },
+      { name: "VIP 출장 타이 & 아로마 풀코스", time: "90분", price: "180,000원", desc: "시원한 타이 스트레칭과 부드러운 아로마 관리를 결합한 전신 올인원 출장 마사지" }
+    ],
+    features: ["100% 후불제 안심결제", "24시간 365일 연중무휴", "세부 동 전지역 25분 칼도착", "철저한 위생 및 방역 관리"]
   },
-  /* 1 */ {
-    title: (loc: string) => `${loc} 바디 힐링 테라피 추천 코스 가이드`,
-    desc: (loc: string) => `체계적인 전신 스트레칭과 섬세한 압으로 피로를 풀어주는 ${loc} 웰니스 제휴 샵 상세 코스 비교.`
+  "2": {
+    name: "✨ 오늘밤테라피",
+    cleanName: "오늘밤테라피",
+    phone: "0507-1280-3191",
+    badge: "재방문율 최우수",
+    image: "/shop2.jpg",
+    desc: "지친 하루의 피로를 말끔히 풀어드리는 1:1 방문 홈케어! 출장 타이 마사지부터 출장 아로마 마사지까지 원하는 장소에서 편안하게 정통 힐링을 누려보세요.",
+    courses: [
+      { name: "출장 타이 마사지 (베이직)", time: "60분", price: "60,000원", desc: "전신 근육을 시원하게 스트레칭하여 가볍고 개운한 몸을 만드는 출장 타이 마사지" },
+      { name: "출장 아로마 마사지 (소프트)", time: "60분", price: "80,000원", desc: "향기로운 천연 오일과 부드러운 압으로 신체 긴장을 완화하는 출장 아로마 마사지" },
+      { name: "출장 릴렉스 마사지 (감성힐링)", time: "60분", price: "90,000원", desc: "지친 심신에 온전한 안식과 숙면을 유도하는 감성 충만 출장 릴렉스 마사지" },
+      { name: "VVIP 스페셜 출장 마사지", time: "60분", price: "100,000원", desc: "타이와 아로마의 장점을 결합하여 전신 피로를 완벽하게 날려주는 코스" },
+      { name: "한국인 전문 힐러 출장 릴렉스 마사지", time: "60분", price: "140,000원", desc: "베테랑 한국인 관리사의 디테일하고 품격 있는 1:1 맞춤 출장 릴렉스 마사지" }
+    ],
+    features: ["선입금 없는 100% 후불제", "친절 마인드 전문 힐러 상주", "간편 결제 지원"]
   },
-  /* 2 */ {
-    title: (loc: string) => `${loc} 아로마 오일 테라피 & 바디케어 프로그램 안내`,
-    desc: (loc: string) => `천연 에센셜 오일로 일상의 스트레스를 부드럽게 완화하는 ${loc} 추천 아로마 마사지 정보.`
+  "3": {
+    name: "💎 주주홈타이",
+    cleanName: "주주홈타이",
+    phone: "0507-1280-3180",
+    badge: "24시 상시 할인",
+    image: "/shop3.jpg",
+    desc: "재방문율 1위 만족도! 정통 출장 타이 마사지와 림프 순환을 돕는 출장 아로마 마사지로 굳어있던 몸을 유연하고 활력 넘치게 회복시켜 드립니다.",
+    courses: [
+      { name: "스탠다드 정통 출장 타이 마사지", time: "60분", price: "60,000원", desc: "머리부터 발끝까지 뭉친 근육을 시원하게 풀어주는 정통 출장 타이 마사지" },
+      { name: "프리미엄 딥티슈 출장 아로마 마사지", time: "90분", price: "90,000원", desc: "근육 결을 따라 부드럽게 속근육 깊은 곳까지 풀어주는 출장 아로마 마사지" },
+      { name: "VIP 시그니처 롱타임 출장 마사지", time: "120분", price: "120,000원", desc: "2시간 동안 출장 타이 마사지와 출장 아로마 마사지를 여유롭게 누리는 풀코스" }
+    ],
+    features: ["선입금 0원 100% 후불제", "평균 25분 방문 보장", "개인정보 완벽 보호"]
   },
-  /* 3 */ {
-    title: (loc: string) => `${loc} 정통 타이마사지 및 릴렉스 테라피 안내`,
-    desc: (loc: string) => `굳은 근육을 편안하게 이완시켜 활력을 충전해 드리는 ${loc} 검증된 힐링 바디케어 제휴점.`
+  "4": {
+    name: "🌟 한국골든테라피",
+    cleanName: "한국골든테라피",
+    phone: "0507-1280-3361",
+    badge: "젊은 감성 베테랑",
+    image: "/shop4.jpg",
+    desc: "베테랑 테라피스트들의 1:1 방문 케어! 출장 릴렉스 마사지와 전신 출장 아로마 마사지로 전지역 어디서나 품격 있는 힐링을 선사합니다.",
+    courses: [
+      { name: "출장 릴렉스 마사지 (건식)", time: "60분", price: "60,000원", desc: "원하는 피로 부위를 집중적으로 시원하게 풀어주는 맞춤형 출장 릴렉스 마사지" },
+      { name: "천연 순환 출장 아로마 마사지", time: "60분", price: "70,000원", desc: "천연 아로마 오일로 전신 혈액순환과 피부 보습을 돕는 출장 아로마 마사지" },
+      { name: "VIP 감성 출장 릴렉스 마사지", time: "60분", price: "100,000원", desc: "부드러운 림프 순환 케어로 몸을 가볍게 만들어주는 스웨디시 출장 릴렉스 마사지" },
+      { name: "한국인 전문 관리사 VIP 풀코스", time: "60분", price: "150,000원", desc: "최상의 휴식과 컨디션 회복을 선사하는 고품격 시그니처 출장 마사지" }
+    ],
+    features: ["젊고 세련된 감성 테라피", "100% 후불 결제", "24시간 상시 대기"]
   },
-  /* 4 */ {
-    title: (loc: string) => `${loc} 프라이빗 웰니스 감성 스웨디시 케어 정보`,
-    desc: (loc: string) => `독립된 공간에서 편안하게 누리는 1:1 맞춤형 테라피. ${loc} 지역 공식 제휴 센터 안내.`
-  },
-  /* 5 */ {
-    title: (loc: string) => `${loc} 딥티슈 집중 릴렉스 마사지 코스 요금표`,
-    desc: (loc: string) => `목, 어깨, 등의 뭉친 피로를 꼼꼼하게 정돈해 주는 ${loc} 집중 바디케어 프로그램 가이드.`
-  },
-  /* 6 */ {
-    title: (loc: string) => `${loc} 림프 순환 케어 & 웰니스 바디 솔루션`,
-    desc: (loc: string) => `원활한 바디 밸런스와 심신 안정을 돕는 ${loc} 림프 테라피 및 표준 요금제 안내.`
-  },
-  /* 7 */ {
-    title: (loc: string) => `${loc} 안심 정찰제 힐링 마사지 제휴센터 안내`,
-    desc: (loc: string) => `믿을 수 있는 현장 정찰제와 쾌적한 환경을 갖춘 ${loc} 추천 마사지 프로그램 모음.`
-  },
-  /* 8 */ {
-    title: (loc: string) => `${loc} 바디 밸런스 트리트먼트 & 전신 스트레칭`,
-    desc: (loc: string) => `지친 심신에 활력을 충전해 드리는 ${loc} 전문 테라피스트의 디테일한 손길.`
-  },
-  /* 9 */ {
-    title: (loc: string) => `${loc} VIP 시그니처 웰니스 바디 테라피 추천`,
-    desc: (loc: string) => `품격 있는 프라이빗 케어와 프리미엄 에센셜 오일로 완성하는 ${loc} 최상의 휴식 코스.`
+  "5": {
+    name: "👑 퀸즈홈테라피",
+    cleanName: "퀸즈홈테라피",
+    phone: "0507-1280-3222",
+    badge: "인기도 TOP 5",
+    image: "/shop5.jpg",
+    desc: "평균 25분 도착! 출장 타이 마사지, 출장 아로마 마사지, 출장 릴렉스 마사지를 정직한 정찰제 가격으로 편안하게 받아보세요.",
+    courses: [
+      { name: "컨디션 케어 출장 타이 마사지", time: "60분", price: "60,000원", desc: "지친 몸의 피로를 시원한 스트레칭으로 해소하는 정통 출장 타이 마사지" },
+      { name: "스페셜 릴렉스 출장 아로마 마사지", time: "60분", price: "70,000원", desc: "향긋한 아로마 오일과 부드러운 손길로 진행되는 전신 출장 아로마 마사지" },
+      { name: "콤비네이션 출장 릴렉스 마사지", time: "90분", price: "120,000원", desc: "출장 타이 마사지와 출장 아로마 마사지를 한 번에 경험하는 밸런스 힐링 코스" },
+      { name: "👑 한국인 전담 관리사 스페셜 코스", time: "60분", price: "140,000원", desc: "전문 관리사의 섬세한 1:1 맞춤 피로 회복 전신 출장 마사지" }
+    ],
+    features: ["100% 후불제", "빠른 도착 보장", "고객 만족도 최상"]
   }
-];
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const { region, district, dong } = resolvedParams;
+  const targetId = resolvedParams.id || resolvedParams.shopId || "1";
+  const shop = shopData[targetId] || shopData["1"];
 
-  const regionShort = getRegionShortName(region);
-  const districtName = safeDecode(district);
-  const dongName = safeDecode(dong);
+  // 🌟 구 + 동 완벽 조합
+  const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district, resolvedParams.dong);
 
-  const locationKeyword = `${regionShort} ${districtName} ${dongName}`.trim();
+  const charSum = (currentRegion + shop.cleanName + targetId + "dong_seo").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const variantIndex = Math.abs(charSum) % 30;
 
-  // 해시 기반 고유 배리에이션 인덱스 (0~9)
-  const charSum = locationKeyword.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const variantIndex = Math.abs(charSum) % DONG_SEO_PATTERNS.length;
+  const titleVariants = [
+    `${currentRegion} 출장 타이 마사지 24시 안내 - ${shop.cleanName}`,
+    `${currentRegion} 출장 아로마 마사지 전문 제휴점 · ${shop.cleanName}`,
+    `${currentRegion} 출장 릴렉스 마사지 추천 코스 | ${shop.cleanName}`,
+    `${currentRegion} 출장 스웨디시 마사지 1:1 방문 - ${shop.cleanName}`,
+    `${currentRegion} 출장 전신 힐링 마사지 24시 예약 · ${shop.cleanName}`,
+    `${currentRegion} 출장 딥티슈 마사지 피로회복 케어 - ${shop.cleanName}`,
+    `${currentRegion} 출장 홈케어 바디 마사지 정찰제 | ${shop.cleanName}`,
+    `${currentRegion} 출장 맞춤 릴렉스 마사지 안내 · ${shop.cleanName}`,
+    `${currentRegion} 출장 건식 & 아로마 마사지 제휴샵 - ${shop.cleanName}`,
+    `${currentRegion} 출장 프리미엄 감성 마사지 24시간 | ${shop.cleanName}`,
+    `${currentRegion} 출장 순환 케어 전문 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 스트레스 해소 힐링 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 1인 프라이빗 맞춤 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 바디 밸런스 케어 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 안심 후불제 전신 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 림프 순환 아로마 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 딥릴렉스 프리미엄 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 소프트 힐링 바디 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 쾌적한 방문 케어 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 명품 스웨디시 힐링 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 체형 맞춤형 바디 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 심야 24시 신속 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 전문 테라피스트 방문 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 정통 스트레칭 타이 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 하이엔드 감성 힐링 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 VVIP 스페셜 풀케어 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 전신 피로회복 힐링 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 안심 방문 릴렉싱 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 천연 에센셜 오일 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 시그니처 웰니스 마사지 · ${shop.cleanName}`
+  ];
 
-  const pattern = DONG_SEO_PATTERNS[variantIndex] || DONG_SEO_PATTERNS[0];
-  const finalTitle = pattern.title(locationKeyword);
-  const finalDescription = pattern.desc(locationKeyword);
+  const pageTitle = titleVariants[variantIndex];
+  const pageDescription = `${currentRegion} 24시 신속 방문 출장 타이 & 아로마 마사지 전문 ${shop.cleanName}. 선입금 없는 100% 후불제로 안심하고 이용하세요.`;
 
-  const canonicalUrl = `https://metroheal.netlify.app/${region}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}`;
+  const canonicalUrl = `https://metroheal.netlify.app/${resolvedParams.region}/${encodeURIComponent(safeDecode(resolvedParams.district))}/${encodeURIComponent(safeDecode(resolvedParams.dong))}/shop/${targetId}`;
 
   return {
     title: {
-      absolute: finalTitle,
+      absolute: pageTitle,
     },
-    description: finalDescription,
+    description: pageDescription,
     alternates: {
       canonical: canonicalUrl,
     },
-    keywords: [
-      `${locationKeyword} 마사지`,
-      `${locationKeyword} 웰니스`,
-      `${locationKeyword} 스웨디시`,
-      `${locationKeyword} 타이마사지`,
-      `${locationKeyword} 아로마 테라피`,
-      `${locationKeyword} 바디케어`,
-      `${dongName} 마사지`,
-      "메트로힐"
-    ],
     openGraph: {
-      title: finalTitle,
-      description: finalDescription,
+      title: pageTitle,
+      description: pageDescription,
       url: canonicalUrl,
-      siteName: "메트로힐",
       locale: "ko_KR",
-      type: "website",
+      type: "article",
     },
   };
 }
 
-export default async function DongDetailPage({ params }: PageProps) {
+export default async function DongShopDetailPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const { region, district, dong } = resolvedParams;
+  const targetId = resolvedParams.id || resolvedParams.shopId || "1";
+  const shop = shopData[targetId] || shopData["1"];
 
-  const regionFullName = getRegionFullName(region);
-  const districtName = safeDecode(district);
-  const dongName = safeDecode(dong);
-
-  const fullLocation = `${regionFullName} ${districtName} ${dongName}`;
-  const shortLocation = `${districtName} ${dongName}`;
-
-  // 동 단위 제휴점 데이터
-  const dongShops = [
-    {
-      id: 1,
-      name: `한국미녀테라피 (${dongName})`,
-      desc: "지친 일상에 맞춤형 활력 충전! 전문 테라피스트의 정성 어린 감성 바디 테라피",
-      phone: "0507-1280-3299",
-      price: "110,000원부터~",
-      image: "/shop1.jpg"
-    },
-    {
-      id: 2,
-      name: `오늘밤테라피 (${dongName})`,
-      desc: "최고급 천연 아로마 오일을 활용한 전신 이완 및 림프 순환 케어 전문 프로그램",
-      phone: "0507-1280-3191",
-      price: "60,000원부터~",
-      image: "/shop2.jpg"
-    },
-    {
-      id: 3,
-      name: `주주홈타이 (${dongName})`,
-      desc: "재방문율 높은 안심 케어! 철저한 위생 관리와 품격 있는 정통 타이 & 릴렉싱",
-      phone: "0507-1280-3180",
-      price: "60,000원부터~",
-      image: "/shop3.jpg"
-    },
-    {
-      id: 4,
-      name: `한국골든테라피 (${dongName})`,
-      desc: "전문 힐러진의 맞춤형 바디 관리, 시간대별 편안한 VIP 피로회복 솔루션",
-      phone: "0507-1280-3361",
-      price: "60,000원부터~",
-      image: "/shop4.jpg"
-    },
-    {
-      id: 5,
-      name: `퀸즈홈테라피 (${dongName})`,
-      desc: "수도권 전지역 엄선된 파트너! 정직한 안내와 함께하는 프라이빗 힐링 테라피",
-      phone: "0507-1280-3222",
-      price: "60,000원부터~",
-      image: "/shop5.jpg"
-    }
-  ];
+  const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district, resolvedParams.dong);
+  const districtName = safeDecode(resolvedParams.district);
+  const dongName = safeDecode(resolvedParams.dong);
 
   return (
-    <div className="bg-[#070709] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
+    <div className="bg-[#050505] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black pb-28">
       
-      {/* 상단 네비게이션 서브 헤더 */}
+      {/* 상단 헤더 */}
       <header className="sticky top-0 z-50 bg-[#050505]/85 backdrop-blur-xl border-b border-amber-500/20 px-4 py-3.5 shadow-[0_4px_20px_rgba(245,158,11,0.1)]">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -208,105 +223,120 @@ export default async function DongDetailPage({ params }: PageProps) {
               <span className="text-lg font-black tracking-wider bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
                 메트로힐
               </span>
-              <span className="text-[9px] text-gray-400 tracking-tighter">METRO HEAL DONG GUIDE</span>
+              <span className="text-[9px] text-gray-400 tracking-tighter">METRO HEAL PARTNER</span>
             </div>
           </Link>
           
           <Link 
-            href={`/${region}/${encodeURIComponent(districtName)}`}
+            href={`/${resolvedParams.region}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}`}
             className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all"
           >
-            ← {districtName} 전체보기
+            ← {dongName} 목록
           </Link>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-10">
+      <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-8">
         
-        {/* 동 단위 대표 배너 */}
-        <section className="relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] bg-[#141418]">
-          <div className="p-6 md:p-10 space-y-2">
-            <span className="text-amber-400 text-xs font-black tracking-widest uppercase mb-1 block">
-              {districtName} · {dongName} WELLNESS DIRECTORY
+        {/* 대표 비주얼 카드 */}
+        <section className="bg-[#121214] border border-amber-500/30 rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+          <div className="relative h-64 md:h-80 w-full overflow-hidden bg-neutral-900">
+            <img 
+              src={shop.image} 
+              alt={`${currentRegion} 출장 마사지 - ${shop.cleanName}`} 
+              className="w-full h-full object-cover filter brightness-[0.7]" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/30"></div>
+            <span className="absolute top-4 left-4 bg-amber-500 text-black text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg">
+              {shop.badge}
             </span>
-            <h1 className="text-2xl md:text-4xl font-black text-white drop-shadow-md">
-              {shortLocation} 웰니스 마사지 안내
+          </div>
+
+          <div className="p-6 md:p-8 space-y-4 -mt-8 relative z-10">
+            <div className="inline-block bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-xl text-amber-400 text-xs font-bold">
+              📍 {currentRegion} 출장 타이·아로마·릴렉스 마사지 24시 신속 방문
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-black text-white">
+              {currentRegion} 출장마사지 24시 안내 - <span className="text-amber-400">{shop.cleanName}</span>
             </h1>
-            <p className="text-xs md:text-sm text-gray-300 mt-2 max-w-xl leading-relaxed">
-              {fullLocation} 고객님을 위한 엄선된 힐링 바디케어 디렉토리입니다. 타이마사지, 아로마 테라피, 감성 스웨디시 제휴 센터의 프로그램 정보를 확인해 보세요.
+
+            <p className="text-xs md:text-sm text-gray-300 leading-relaxed bg-black/50 p-4 rounded-2xl border border-white/5">
+              {shop.desc}
             </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+              {shop.features.map((feat, idx) => (
+                <div key={idx} className="bg-black/60 border border-amber-500/20 px-3 py-2 rounded-xl text-center text-[11px] font-bold text-amber-300">
+                  ✓ {feat}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* 🌟 제휴업체 목록: 클릭 시 동 기준 샵 상세 (/[region]/[district]/[dong]/shop/[id])로 이동 */}
-        <section className="space-y-6">
+        {/* 코스 및 요금 안내 */}
+        <section className="bg-[#0d0d0f] border border-amber-500/20 p-6 md:p-8 rounded-3xl space-y-6">
           <div className="text-center">
-            <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">VERIFIED SHOPS</p>
+            <span className="text-amber-400 text-xs font-bold tracking-widest uppercase">PROGRAM & PRICE</span>
             <h2 className="text-xl md:text-2xl font-black text-white mt-1">
-              {shortLocation} 추천 제휴 샵
+              💎 {currentRegion} 출장 마사지 코스 및 요금 안내
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {dongShops.map((shop) => (
-              <div 
-                key={shop.id} 
-                className="bg-[#111114] border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-4 flex gap-4 items-center shadow-lg transition-all group relative"
-              >
-                {/* 🌟 핵심 링크: 동 기준 샵 상세 주소로 연결 */}
-                <Link 
-                  href={`/${region}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}/shop/${shop.id}`}
-                  className="absolute inset-0 z-10" 
-                  aria-label={`${shop.name} 코스 및 상세정보 보기`} 
-                />
-
-                <img 
-                  src={shop.image} 
-                  alt={shop.name} 
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
-                />
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
-                    {shop.name}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
-                    {shop.desc}
-                  </p>
-                  <div className="mt-2.5 flex items-center justify-between">
-                    <span className="text-xs font-black text-amber-400">{shop.price}</span>
-                    <a 
-                      href={`tel:${shop.phone}`} 
-                      className="bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black font-black text-xs px-3.5 py-1.5 rounded-xl shadow transition-all transform active:scale-95 relative z-20"
-                    >
-                      전화연결
-                    </a>
+          <div className="space-y-4">
+            {shop.courses.map((course, idx) => (
+              <div key={idx} className="bg-black/60 border border-white/10 hover:border-amber-500/40 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-3 transition-colors">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-red-500/20 text-red-400 text-[10px] font-black px-2 py-0.5 rounded border border-red-500/30">
+                      {course.time}
+                    </span>
+                    <h3 className="font-extrabold text-white text-base md:text-lg">{course.name}</h3>
                   </div>
+                  <p className="text-xs text-gray-400">{course.desc}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-black text-amber-400 bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20 inline-block">
+                    {course.price}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 웰니스 케어 팁 */}
-        <section className="bg-[#0e0e12] p-6 md:p-8 rounded-3xl border border-white/10 space-y-4">
-          <h3 className="text-base md:text-lg font-bold text-amber-400 flex items-center gap-2">
-            <span>🌿</span> {shortLocation} 일상 속 건강한 쉼을 위한 팁
+        {/* 안심 이용 안내 */}
+        <section className="bg-black/80 p-5 rounded-2xl border border-white/10">
+          <h3 className="text-amber-400 font-bold text-sm mb-2 flex items-center gap-1.5">
+            <span>📌</span> {currentRegion} 마사지 안심 이용 안내
           </h3>
-          <p className="text-xs text-gray-300 leading-relaxed">
-            반복되는 일상 업무와 불규칙한 생활 패턴으로 굳어진 신체는 적절한 스트레칭과 바디케어를 통해 긴장을 풀어주는 것이 중요합니다. 나에게 맞는 프로그램을 선택하여 최상의 휴식을 경험해 보세요.
-          </p>
+          <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+            <li>모든 제휴 업체는 <strong>100% 현장 후불제</strong>로만 운영되며, 사전 선입금이나 예약금을 절대 요구하지 않습니다.</li>
+            <li>원하시는 시간 20~30분 전에 문의해 주시면 출장 타이 마사지, 출장 아로마 마사지, 출장 릴렉스 마사지 전문 테라피스트가 신속하게 방문합니다.</li>
+          </ul>
         </section>
 
       </main>
 
-      {/* 푸터 */}
-      <footer className="bg-[#040406] border-t border-white/10 py-10 text-center text-gray-500 text-xs mt-auto">
-        <div className="max-w-4xl mx-auto px-4 space-y-4">
-          <p className="text-gray-400 font-medium">메트로힐은 쾌적하고 건전한 프리미엄 바디 웰니스 제휴 정보를 제공합니다.</p>
-          <p className="text-[11px] text-gray-600">COPYRIGHT &copy; METROHEAL ALL RIGHTS RESERVED.</p>
+      {/* 하단 고정 전화 / 문자 바 */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#08080a]/95 backdrop-blur-xl border-t border-amber-500/30 p-3 md:p-4 shadow-[0_-10px_25px_rgba(0,0,0,0.8)]">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-3">
+          <a 
+            href={`tel:${shop.phone}`}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-black font-black py-3.5 rounded-2xl text-xs md:text-sm shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-transform active:scale-95"
+          >
+            <span className="text-lg">📞</span> 전화로 즉시예약
+          </a>
+          <a 
+            href={`sms:${shop.phone}?body=${encodeURIComponent(`[${currentRegion}] ${shop.cleanName} 출장마사지 예약 문의드립니다. (메트로힐 보고 연락드렸어요)`)}`}
+            className="flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-black py-3.5 rounded-2xl text-xs md:text-sm border border-white/10 hover:border-amber-500/40 transition-transform active:scale-95"
+          >
+            <span className="text-lg">💬</span> 간편 문자상담
+          </a>
         </div>
-      </footer>
+      </div>
+
     </div>
   );
 }
