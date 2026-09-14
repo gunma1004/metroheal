@@ -12,8 +12,24 @@ interface PageProps {
   }>;
 }
 
+// 🛠️ 이중 URL 인코딩까지 안전하게 풀어내는 디코더
+function safeDecode(str: string): string {
+  if (!str) return "";
+  let decoded = str;
+  try {
+    decoded = decodeURIComponent(decodeURIComponent(str));
+  } catch {
+    try {
+      decoded = decodeURIComponent(str);
+    } catch {
+      decoded = str;
+    }
+  }
+  return decoded.trim();
+}
+
 // -------------------------------------------------------------
-// 🎯 샵 페이지와 겹치지 않는 40가지 클린 웰니스 SEO 패턴
+// 🎯 샵 페이지와 겹치지 않는 40가지 클린 웰니스 SEO 패턴 (스팸 트리거 100% 배제)
 // -------------------------------------------------------------
 const SEO_PATTERNS = [
   /* 0 */ {
@@ -33,7 +49,7 @@ const SEO_PATTERNS = [
     desc: (r: string) => `체계적인 전신 스트레칭과 지압으로 굳은 근육을 시원하게 풀어주는 ${r} 타이 테라피 제휴 정보.`
   },
   /* 4 */ {
-    title: (r: string) => `${r} 프라이빗 웰니스 홈 테라피 큐레이션 - 메트로힐`,
+    title: (r: string) => `${r} 프라이빗 웰니스 힐링 테라피 큐레이션 - 메트로힐`,
     desc: (r: string) => `원하는 공간에서 편안하게 누리는 1:1 맞춤형 바디 트리트먼트. ${r} 프리미엄 힐링 가이드.`
   },
   /* 5 */ {
@@ -45,8 +61,8 @@ const SEO_PATTERNS = [
     desc: (r: string) => `몸의 순환을 원활하게 돕고 붓기 완화에 집중한 ${r} 림프 테라피 코스 및 정찰제 안내.`
   },
   /* 7 */ {
-    title: (r: string) => `${r} 24시 실시간 힐링 바디케어 제휴 샵 안내 - 메트로힐`,
-    desc: (r: string) => `밤낮 구분 없이 지친 하루의 피로를 풀어주는 ${r} 안심 테라피 샵 정보 및 실시간 예약 안내.`
+    title: (r: string) => `${r} 실시간 힐링 바디케어 제휴 샵 안내 - 메트로힐`,
+    desc: (r: string) => `지친 하루의 피로를 편안하게 풀어주는 ${r} 안심 테라피 샵 정보 및 실시간 예약 안내.`
   },
   /* 8 */ {
     title: (r: string) => `${r} 릴렉스 바디 밸런스 트리트먼트 가이드 | 메트로힐`,
@@ -74,15 +90,15 @@ const SEO_PATTERNS = [
   },
   /* 14 */ {
     title: (r: string) => `${r} 로미로미 감성 힐링 트리트먼트 | 메트로힐`,
-    desc: (r: string) => `물 흐르듯 부드러운 리듬감의 하와이안 감성 테라피, ${r} 로미로미 코스 및 요금 비교.`
+    desc: (r: string) => `물 흐르듯 부드러운 리듬감의 감성 테라피, ${r} 로미로미 코스 및 요금 비교.`
   },
   /* 15 */ {
     title: (r: string) => `${r} 전신 순환 아로마 테라피 프로그램 - 메트로힐`,
     desc: (r: string) => `향기로운 식물성 오일 블렌딩으로 심신 안정을 돕는 ${r} 힐링 케어 가이드.`
   },
   /* 16 */ {
-    title: (r: string) => `${r} 심야 힐링 나이트 바디케어 가이드 | 메트로힐`,
-    desc: (r: string) => `숙면을 취하지 못하는 분들을 위한 ${r} 편안한 심야 릴렉싱 프로그램 정보.`
+    title: (r: string) => `${r} 편안한 나이트 릴렉싱 바디케어 가이드 | 메트로힐`,
+    desc: (r: string) => `숙면을 취하지 못하는 분들을 위한 ${r} 편안한 릴렉싱 프로그램 정보.`
   },
   /* 17 */ {
     title: (r: string) => `${r} 스웨디시 & 딥 릴렉스 집중 코스 - 메트로힐`,
@@ -129,7 +145,7 @@ const SEO_PATTERNS = [
     desc: (r: string) => `건식의 시원함과 아로마의 부드러움을 한 번에 경험하는 ${r} 인기 복합 프로그램.`
   },
   /* 28 */ {
-    title: (r: string) => `${r} 힐링 홈스파 감성 바디케어 | 메트로힐`,
+    title: (r: string) => `${r} 힐링 스파 감성 바디케어 | 메트로힐`,
     desc: (r: string) => `도심 속 나만의 작은 휴식처, ${r} 프라이빗 힐링 테라피 샵 모음.`
   },
   /* 29 */ {
@@ -142,7 +158,7 @@ const SEO_PATTERNS = [
   },
   /* 31 */ {
     title: (r: string) => `${r} 타이 & 스웨디시 추천 제휴 샵 - 메트로힐`,
-    desc: (r: string) => `${r} 지역 검증된 제휴 업체의 실제 후기와 코스별 요금을 투명하게 확인하세요.`
+    desc: (r: string) => `${r} 지역 검증된 제휴 업체의 실제 코스별 요금을 투명하게 확인하세요.`
   },
   /* 32 */ {
     title: (r: string) => `${r} 감성 힐링 릴렉스 바디 테라피 | 메트로힐`,
@@ -162,7 +178,7 @@ const SEO_PATTERNS = [
   },
   /* 36 */ {
     title: (r: string) => `${r} 프라이빗 1인 룸 힐링 바디케어 | 메트로힐`,
-    desc: (r: string) => `타인의 시선 없이 독립된 공간에서 누리는 ${r} 프라이빗 바디 테라피 정보.`
+    desc: (r: string) => `독립된 공간에서 누리는 ${r} 프라이빗 바디 테라피 정보.`
   },
   /* 37 */ {
     title: (r: string) => `${r} 럭셔리 감성 스웨디시 케어 안내 - 메트로힐`,
@@ -183,8 +199,8 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const resolvedSearchParams = await searchParams;
 
   const { region, district } = resolvedParams;
-  const dongName = resolvedSearchParams.dong ? decodeURIComponent(resolvedSearchParams.dong) : "";
-  const districtName = decodeURIComponent(district);
+  const dongName = resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "";
+  const districtName = safeDecode(district);
   const regionName = region === "seoul" ? "서울" : region === "incheon" ? "인천" : "경기";
 
   const locationKeyword = `${regionName} ${districtName} ${dongName}`.trim();
@@ -236,8 +252,8 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
   const resolvedSearchParams = await searchParams;
 
   const { region, district } = resolvedParams;
-  const dongName = resolvedSearchParams.dong ? decodeURIComponent(resolvedSearchParams.dong) : "";
-  const districtName = decodeURIComponent(district);
+  const dongName = resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "";
+  const districtName = safeDecode(district);
   const regionName = region === "seoul" ? "서울특별시" : region === "incheon" ? "인천광역시" : "경기도";
 
   const fullTitle = dongName 
@@ -246,7 +262,6 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
 
   const simpleLocation = dongName ? `${districtName} ${dongName}` : districtName;
 
-  // 🌟 동 페이지 제휴 샵 리스트 (shop1.jpg ~ shop5.jpg 이미지 명시적 연결)
   const localShops = [
     {
       id: 1,
@@ -331,7 +346,7 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
         </section>
 
         {/* 클라이언트 사이드 키워드 인젝션 영역 */}
-        <ClientTextMixer locationText={fullTitle} />
+        <ClientTextMixer region={region} district={districtName} />
 
         {/* 제휴업체 5개 카드리스트 */}
         <section className="space-y-6">
@@ -346,13 +361,13 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
             {localShops.map((lShop) => (
               <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-4 flex gap-4 items-center shadow-lg transition-all group relative">
                 
+                {/* 🌟 핵심 수정: 신규 계층형 URL 구조로 이동 */}
                 <Link 
-                  href={`/shop/${lShop.id}?region=${encodeURIComponent(simpleLocation)}`} 
+                  href={`/${region}/${encodeURIComponent(districtName)}/shop/${lShop.id}`} 
                   className="absolute inset-0 z-10" 
                   aria-label={`${lShop.name} 상세페이지 보기`} 
                 />
 
-                {/* 🌟 동 페이지 샵 카드 이미지 명시적 로드 */}
                 <img 
                   src={lShop.image} 
                   alt={lShop.name} 

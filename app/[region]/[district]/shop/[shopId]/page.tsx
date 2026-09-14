@@ -4,11 +4,42 @@ import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{
+    region: string;
+    district: string;
     id: string;
   }>;
-  searchParams?: Promise<{
-    region?: string;
-  }>;
+}
+
+// 🌐 영문 시/도 코드를 한글명으로 변환
+function getRegionFullName(region: string): string {
+  switch (region?.toLowerCase()) {
+    case "seoul": return "서울";
+    case "gyeonggi": return "경기";
+    case "incheon": return "인천";
+    default: return region || "";
+  }
+}
+
+// 🛠️ 이중 디코딩 방어 함수
+function safeDecode(str: string): string {
+  if (!str) return "";
+  let decoded = str;
+  try {
+    decoded = decodeURIComponent(decodeURIComponent(str));
+  } catch {
+    try {
+      decoded = decodeURIComponent(str);
+    } catch {
+      decoded = str;
+    }
+  }
+  return decoded.trim();
+}
+
+function parseLocationText(region: string, district: string): string {
+  const regionName = getRegionFullName(region);
+  const decodedDistrict = safeDecode(district);
+  return `${regionName} ${decodedDistrict}`.replace(/\s+/g, " ").trim();
 }
 
 const shopData: Record<string, {
@@ -97,18 +128,17 @@ const shopData: Record<string, {
     features: ["100% 후불제", "수도권 전지역 빠른 도착", "고객 만족도 최상"]
   }
 };
-export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const search = searchParams ? await searchParams : undefined;
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { region, district, id } = await params;
   const shop = shopData[id] || shopData["1"];
 
-  const currentRegion = search?.region ? decodeURIComponent(search.region) : "수도권";
+  const currentRegion = parseLocationText(region, district);
 
-  // 🌟 1. 지역명 + 샵 이름 + ID로 고유 해시 인덱스(0~29) 계산
+  // 해시 인덱스 계산 (0~29)
   const charSum = (currentRegion + shop.cleanName + id + "metroheal_seo").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const variantIndex = charSum % 30;
 
-  // 🌟 2. 구/동마다 문장이 달라지도록 30가지 타이틀 배리에이션
   const titleVariants = [
     `${currentRegion} 출장 타이 마사지 24시 안내 - ${shop.cleanName}`,
     `${currentRegion} 출장 아로마 마사지 전문 제휴점 · ${shop.cleanName}`,
@@ -142,7 +172,6 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     `${currentRegion} 출장 시그니처 웰니스 마사지 · ${shop.cleanName}`
   ];
 
-  // 🌟 3. 구/동마다 설명도 완전히 달라지는 30가지 디스크립션 배리에이션
   const descriptionVariants = [
     `${currentRegion} 24시 신속 방문 출장 타이 마사지 전문 ${shop.cleanName}. 선입금 없는 100% 후불제로 안심하고 이용하세요.`,
     `${currentRegion} 전지역 출장 아로마 마사지 제휴 안내. 최고급 천연 오일로 전신 피로를 부드럽게 풀어드립니다.`,
@@ -185,7 +214,6 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     },
     description: pageDescription,
     keywords: [
-      // 🌟 요청하셨던 50가지 출장 마사지 단일 형식 100% 유지
       `${currentRegion} 출장 타이 마사지`,
       `${currentRegion} 출장 아로마 마사지`,
       `${currentRegion} 출장 릴렉스 마사지`,
@@ -238,12 +266,12 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       `${currentRegion} 출장 심야 마사지`
     ],
     alternates: {
-      canonical: `https://metroheal.netlify.app/shop/${id}${search?.region ? `?region=${encodeURIComponent(search.region)}` : ""}`,
+      canonical: `https://metroheal.netlify.app/${region}/${encodeURIComponent(safeDecode(district))}/shop/${id}`,
     },
     openGraph: {
       title: pageTitle,
       description: pageDescription,
-      url: `https://metroheal.netlify.app/shop/${id}${search?.region ? `?region=${encodeURIComponent(search.region)}` : ""}`,
+      url: `https://metroheal.netlify.app/${region}/${encodeURIComponent(safeDecode(district))}/shop/${id}`,
       siteName: "메트로힐",
       locale: "ko_KR",
       type: "article",
@@ -251,34 +279,15 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-export default async function ShopDetailPage({ params, searchParams }: PageProps) {
-  const { id } = await params;
-  const search = searchParams ? await searchParams : undefined;
+export default async function ShopDetailPage({ params }: PageProps) {
+  const { region, district, id } = await params;
   const shop = shopData[id];
 
   if (!shop) {
     notFound();
   }
 
-  const currentRegion = search?.region ? decodeURIComponent(search.region) : "수도권";
-
-  const majorRegions = [
-    { name: "강남구", slug: "강남구" },
-    { name: "서초구", slug: "서초구" },
-    { name: "송파구", slug: "송파구" },
-    { name: "마포구", slug: "마포구" },
-    { name: "영등포구", slug: "영등포구" },
-    { name: "수원시", slug: "수원시" },
-    { name: "성남시", slug: "성남시" },
-    { name: "분당구", slug: "분당구" },
-    { name: "일산", slug: "고양시" },
-    { name: "부천시", slug: "부천시" },
-    { name: "용인시", slug: "용인시" },
-    { name: "안양시", slug: "안양시" },
-    { name: "인천 부평", slug: "부평구" },
-    { name: "인천 송도", slug: "연수구" },
-    { name: "인천 구월", slug: "남동구" },
-  ];
+  const currentRegion = parseLocationText(region, district);
 
   return (
     <div className="bg-[#050505] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black pb-28">
@@ -298,8 +307,11 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
             </div>
           </Link>
           
-          <Link href="/" className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all">
-            🏠 메인으로
+          <Link 
+            href={`/${region}/${encodeURIComponent(safeDecode(district))}`}
+            className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all"
+          >
+            ← {safeDecode(district)} 목록
           </Link>
         </div>
       </header>
@@ -370,31 +382,6 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
                   </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 지역별 빠른 연결 링크 */}
-        <section className="bg-neutral-950 p-6 rounded-3xl border border-white/5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-              🗺️ {shop.cleanName} 주요 거점 마사지 빠른 연결
-            </h3>
-            <span className="text-[10px] text-gray-500">24시간 신속 방문</span>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {majorRegions.map((reg, idx) => (
-              <Link
-                key={idx}
-                href={`/shop/${id}?region=${encodeURIComponent(reg.slug)}`}
-                className={`text-xs px-3 py-1.5 rounded-xl border transition-all ${
-                  currentRegion === reg.slug 
-                    ? "bg-amber-500 text-black font-black border-amber-400" 
-                    : "bg-black/40 text-gray-400 border-white/10 hover:border-amber-500/40 hover:text-white"
-                }`}
-              >
-                {reg.name} 마사지
-              </Link>
             ))}
           </div>
         </section>
