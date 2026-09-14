@@ -301,7 +301,7 @@ export default async function RegionalDetailPage({ params, searchParams }: PageP
         </section>
 
         {/* 🌟 샵 리스트는 ClientTextMixer 컴포넌트 하나로만 렌더링 (중복 방지) */}
-        <ClientTextMixer region={region} district={districtName} />
+        <ClientTextMixer region={region} district={districtName} dongName={dongName} />
 
         {/* 건강 웰니스 칼럼 섹션 */}
         <section className="bg-[#0e0e12] p-6 md:p-8 rounded-3xl border border-white/10 space-y-4">
