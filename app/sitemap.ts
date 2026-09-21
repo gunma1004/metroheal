@@ -126,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 3. 기존 독립 샵 상세 페이지 (/shop/1 ~ /shop/5)
+  // 3. 독립 샵 상세 페이지 (/shop/1 ~ /shop/5)
   const shopRoutes: MetadataRoute.Sitemap = [1, 2, 3, 4, 5].map((id) => ({
     url: `${baseUrl}/shop/${id}`,
     lastModified: new Date(),
@@ -134,7 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 4. 지역 라우트 및 [지역/구/shop/id] 조합 라우트 생성
+  // 4. 지역, 동, 그리고 지역/동별 샵 상세 페이지 라우트 생성
   const regionRoutes: MetadataRoute.Sitemap = [];
   const regionalShopRoutes: MetadataRoute.Sitemap = [];
   const shopIds = [1, 2, 3, 4, 5];
@@ -143,7 +143,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const districtVal of Object.values(regionVal.districts)) {
       const districtName = districtVal.name;
 
-      // ① 구/시/군 단위 페이지 (예: /seoul/구로구)
+      // ① 구/시/군 단위 페이지 (예: /gyeonggi/고양시 덕양구)
       regionRoutes.push({
         url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}`,
         lastModified: new Date(),
@@ -151,7 +151,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.9,
       });
 
-      // ② 요청하신 형태의 지역별 샵 상세 페이지 (예: /seoul/구로구/shop/1)
+      // ② 구/시/군 단위 하위 샵 페이지 (예: /gyeonggi/고양시 덕양구/shop/1)
       for (const shopId of shopIds) {
         regionalShopRoutes.push({
           url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}/shop/${shopId}`,
@@ -161,7 +161,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
 
-      // ③ 하위 동 단위 페이지 (예: /seoul/구로구/구로1동)
+      // ③ 하위 동 단위 페이지 (예: /gyeonggi/고양시 덕양구/원신동)
       for (const dongName of districtVal.dongs) {
         regionRoutes.push({
           url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}`,
@@ -169,6 +169,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           changeFrequency: 'daily',
           priority: 0.7,
         });
+
+        // ④ [요청하신 부분] 동 단위 하위 샵 페이지 (예: /gyeonggi/고양시 덕양구/원신동/shop/1)
+        for (const shopId of shopIds) {
+          regionalShopRoutes.push({
+            url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}/shop/${shopId}`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.6,
+          });
+        }
       }
     }
   }
