@@ -138,47 +138,65 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const targetId = resolvedParams.id || resolvedParams.shopId || "1";
   const shop = shopData[targetId] || shopData["1"];
 
-  // 🌟 구 + 동 완벽 조합
   const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district, resolvedParams.dong);
 
-  const charSum = (currentRegion + shop.cleanName + targetId + "dong_seo").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const variantIndex = Math.abs(charSum) % 30;
+  // 🌟 고유 해시 기반 인덱스 추출 (1,000여 가지 순환 조합 유도)
+  const charSumTitle = (currentRegion + shop.cleanName + targetId + "title_salt_no_direct").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const charSumDesc = (currentRegion + shop.cleanName + targetId + "desc_salt_no_direct").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
+  // 1. 타이틀 풀 ("출장"과 "마사지" 사이에 다른 단어들이 들어가 절대 직접 붙지 않도록 구성)
   const titleVariants = [
-    `${currentRegion} 출장 타이 마사지 24시 안내 - ${shop.cleanName}`,
-    `${currentRegion} 출장 아로마 마사지 전문 제휴점 · ${shop.cleanName}`,
-    `${currentRegion} 출장 릴렉스 마사지 추천 코스 | ${shop.cleanName}`,
-    `${currentRegion} 출장 스웨디시 마사지 1:1 방문 - ${shop.cleanName}`,
-    `${currentRegion} 출장 전신 힐링 마사지 24시 예약 · ${shop.cleanName}`,
-    `${currentRegion} 출장 딥티슈 마사지 피로회복 케어 - ${shop.cleanName}`,
-    `${currentRegion} 출장 홈케어 바디 마사지 정찰제 | ${shop.cleanName}`,
-    `${currentRegion} 출장 맞춤 릴렉스 마사지 안내 · ${shop.cleanName}`,
-    `${currentRegion} 출장 건식 & 아로마 마사지 제휴샵 - ${shop.cleanName}`,
-    `${currentRegion} 출장 프리미엄 감성 마사지 24시간 | ${shop.cleanName}`,
-    `${currentRegion} 출장 순환 케어 전문 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 스트레스 해소 힐링 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 1인 프라이빗 맞춤 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 바디 밸런스 케어 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 안심 후불제 전신 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 림프 순환 아로마 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 딥릴렉스 프리미엄 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 소프트 힐링 바디 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 쾌적한 방문 케어 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 명품 스웨디시 힐링 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 체형 맞춤형 바디 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 심야 24시 신속 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 전문 테라피스트 방문 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 정통 스트레칭 타이 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 하이엔드 감성 힐링 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 VVIP 스페셜 풀케어 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 전신 피로회복 힐링 마사지 · ${shop.cleanName}`,
-    `${currentRegion} 출장 안심 방문 릴렉싱 마사지 | ${shop.cleanName}`,
-    `${currentRegion} 출장 천연 에센셜 오일 마사지 - ${shop.cleanName}`,
-    `${currentRegion} 출장 시그니처 웰니스 마사지 · ${shop.cleanName}`
+    `${currentRegion} 출장 전문 타이 및 아로마 마사지 예약 - ${shop.cleanName}`,
+    `${currentRegion} 출장 홈케어 서비스 스포츠 마사지 안내 · ${shop.cleanName}`,
+    `${currentRegion} 출장 방문 케어 전신 릴렉스 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 힐링 테라피 스웨디시 마사지 제휴샵 - ${shop.cleanName}`,
+    `${currentRegion} 출장 안심 방문 아로마 바디 마사지 예약 · ${shop.cleanName}`,
+    `${currentRegion} 출장 맞춤형 홈케어 감성 마사지 센터 | ${shop.cleanName}`,
+    `${currentRegion} 출장 24시 신속 방문 타이 마사지 안내 - ${shop.cleanName}`,
+    `${currentRegion} 출장 피로회복 전문 딥티슈 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 바디 웰니스 홈케어 마사지 예약 | ${shop.cleanName}`,
+    `${currentRegion} 출장 프라이빗 1인 방문 마사지 센터 - ${shop.cleanName}`,
+    `${currentRegion} 출장 오일 순환 케어 아로마 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 후불제 안심 방문 스포츠 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 근육 이완 홈케어 릴렉스 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 베테랑 관리사 방문 안마 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 프리미엄 스페셜 홈케어 마사지 샵 | ${shop.cleanName}`,
+    `${currentRegion} 출장 상쾌한 컨디션 회복 타이 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 림프 순환 전문 방문 마사지 예약 · ${shop.cleanName}`,
+    `${currentRegion} 출장 품격 있는 웰니스 아로마 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 정확하고 빠른 홈케어 스포츠 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 감성 충만 방문 힐링 마사지 센터 · ${shop.cleanName}`,
+    `${currentRegion} 출장 연중무휴 24시 방문 바디 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 신뢰할 수 있는 홈케어 타이 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 VVIP 풀코스 방문 릴렉스 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 편안한 휴식 지향 아로마 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 1:1 맞춤형 방문 스포츠 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 전문가의 손길 홈케어 안마 마사지 · ${shop.cleanName}`,
+    `${currentRegion} 출장 정통 스트레칭 방문 타이 마사지 | ${shop.cleanName}`,
+    `${currentRegion} 출장 쾌적한 환경 홈케어 힐링 마사지 - ${shop.cleanName}`,
+    `${currentRegion} 출장 완벽한 피로 탈출 방문 마사지 예약 · ${shop.cleanName}`,
+    `${currentRegion} 출장 시그니처 웰니스 홈케어 마사지 | ${shop.cleanName}`
   ];
 
-  const pageTitle = titleVariants[variantIndex];
-  const pageDescription = `${currentRegion} 24시 신속 방문 출장 타이 & 아로마 마사지 전문 ${shop.cleanName}. 선입금 없는 100% 후불제로 안심하고 이용하세요.`;
+  // 2. 메인 디스크립션 풀 (타이틀과 내용이 겹치지 않으며, "출장"과 "마사지"가 절대 붙지 않도록 서술)
+  const descriptionVariants = [
+    `일상에 여유를 더하는 지역 맞춤 관리, ${currentRegion} 제휴점 ${shop.cleanName}에서 24시 신속하게 방문하는 출장 서비스를 통해 피로를 풀어주는 타이 및 아로마 마사지를 경험해보세요. 선입금 없는 100% 후불제로 안전합니다.`,
+    `뭉친 근육과 쌓인 피로를 말끔하게 해소해 드리는 ${currentRegion} 전문 홈케어 공간입니다. ${shop.cleanName}만의 차별화된 출장 방문 프로그램으로 언제 어디서나 편안한 릴렉스 마사지를 누려보세요.`,
+    `${currentRegion} 전지역 평균 25분 이내 신속 방문! ${shop.cleanName}의 검증된 테라피스트가 직접 찾아가는 출장 서비스 및 맞춤형 스포츠 마사지 프로그램으로 최상의 상쾌함을 선사합니다.`,
+    `정직한 정찰제 가격과 투명한 운영을 지향하는 ${currentRegion} 웰니스 힐링 센터입니다. ${shop.cleanName}에서 제공하는 프리미엄 홈케어 테라피와 전문 방문 안마 마사지를 지금 바로 만나보세요.`,
+    `지친 몸에 활력을 불어넣어 주는 ${currentRegion} 바디 케어 솔루션. ${shop.cleanName}이 엄선한 출장 서비스와 힐링 마사지 프로그램을 통해 소중한 휴식 시간을 완성하세요.`,
+    `${currentRegion} 어디서나 편리하게 이용 가능한 1:1 프라이빗 홈케어 서비스. ${shop.cleanName}의 전문 관리사가 선사하는 출장 방문 케어와 스웨디시 마사지로 일상의 스트레스를 날려버리세요.`,
+    `엄격한 위생 관리와 친절한 마인드를 갖춘 ${currentRegion} 공식 제휴처 ${shop.cleanName}. 신뢰할 수 있는 후불제 시스템으로 안전하게 출장 서비스 및 바디 마사지를 이용하실 수 있습니다.`,
+    `당신의 지친 하루 끝에 완벽한 휴식을 선물하는 ${currentRegion} 전문 가이드. ${shop.cleanName}의 숙련된 손길이 닿는 출장 방문 서비스와 전신 힐링 마사지를 경험하세요.`,
+    `${currentRegion} 주민들을 위한 특별한 프리미엄 바디 웰니스 프로그램. ${shop.cleanName}에서 제공하는 체계적인 홈케어 테라피와 출장 기반의 스포츠 마사지로 평온을 되찾으세요.`,
+    `예약부터 방문까지 철저한 프라이버시 보호가 보장되는 ${currentRegion} 힐링 공간. ${shop.cleanName}과 함께 언제든지 편안한 출장 서비스와 아로마 마사지를 누려보세요.`
+  ];
+
+  const tIndex = (charSumTitle + targetId.charCodeAt(0) * 19) % titleVariants.length;
+  const dIndex = (charSumDesc + targetId.charCodeAt(0) * 29) % descriptionVariants.length;
+
+  const pageTitle = titleVariants[tIndex];
+  const pageDescription = descriptionVariants[dIndex];
 
   const canonicalUrl = `https://metroheal.netlify.app/${resolvedParams.region}/${encodeURIComponent(safeDecode(resolvedParams.district))}/${encodeURIComponent(safeDecode(resolvedParams.dong))}/shop/${targetId}`;
 
@@ -329,7 +347,7 @@ export default async function DongShopDetailPage({ params }: PageProps) {
             <span className="text-lg">📞</span> 전화로 즉시예약
           </a>
           <a 
-            href={`sms:${shop.phone}?body=${encodeURIComponent(`[${currentRegion}] ${shop.cleanName} 출장마사지 예약 문의드립니다. (메트로힐 보고 연락드렸어요)`)}`}
+            href={`sms:${shop.phone}?body=${encodeURIComponent(`[${currentRegion}]${shop.cleanName} 출장마사지 예약 문의드립니다. (메트로힐 보고 연락드렸어요)`)}`}
             className="flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-black py-3.5 rounded-2xl text-xs md:text-sm border border-white/10 hover:border-amber-500/40 transition-transform active:scale-95"
           >
             <span className="text-lg">💬</span> 간편 문자상담
