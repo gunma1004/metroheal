@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
-// 클라이언트 컴포넌트와 동일한 지역·동 구조 데이터
 const regionData: Record<string, { name: string; districts: Record<string, { name: string; dongs: string[] }> }> = {
+
   seoul: {
     name: "서울특별시",
     districts: {
@@ -126,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 3. 메인 추천 제휴 샵 상세 페이지 (/shop/1 ~ /shop/5)
+  // 3. 기존 독립 샵 상세 페이지 (/shop/1 ~ /shop/5)
   const shopRoutes: MetadataRoute.Sitemap = [1, 2, 3, 4, 5].map((id) => ({
     url: `${baseUrl}/shop/${id}`,
     lastModified: new Date(),
@@ -134,14 +134,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 4. 지역(구/시/군) 및 하위 동(dong) 전체 순회 라우트 생성
+  // 4. 지역 라우트 및 [지역/구/shop/id] 조합 라우트 생성
   const regionRoutes: MetadataRoute.Sitemap = [];
+  const regionalShopRoutes: MetadataRoute.Sitemap = [];
+  const shopIds = [1, 2, 3, 4, 5];
 
   for (const [regionKey, regionVal] of Object.entries(regionData)) {
     for (const districtVal of Object.values(regionVal.districts)) {
       const districtName = districtVal.name;
 
-      // ① 구/시/군 단위 페이지 추가 (예: /seoul/강남구)
+      // ① 구/시/군 단위 페이지 (예: /seoul/구로구)
       regionRoutes.push({
         url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}`,
         lastModified: new Date(),
@@ -149,7 +151,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.9,
       });
 
-      // ② 하위 동 단위 상세 페이지 추가 (예: /seoul/강남구/역삼1동)
+      // ② 요청하신 형태의 지역별 샵 상세 페이지 (예: /seoul/구로구/shop/1)
+      for (const shopId of shopIds) {
+        regionalShopRoutes.push({
+          url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}/shop/${shopId}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
+      }
+
+      // ③ 하위 동 단위 페이지 (예: /seoul/구로구/구로1동)
       for (const dongName of districtVal.dongs) {
         regionRoutes.push({
           url: `${baseUrl}/${regionKey}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}`,
@@ -161,5 +173,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...mainRoute, ...categoryRoutes, ...shopRoutes, ...regionRoutes];
+  return [
+    ...mainRoute, 
+    ...categoryRoutes, 
+    ...shopRoutes, 
+    ...regionRoutes, 
+    ...regionalShopRoutes
+  ];
 }
