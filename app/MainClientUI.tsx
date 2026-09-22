@@ -95,7 +95,7 @@ const regionData: Record<string, { name: string; districts: Record<string, { nam
       bupyeong: { name: "부평구", dongs: ["부평동", "산곡동", "청천동", "갈산동", "삼산동", "부개동", "일신동", "십정동"] },
       gyeyang: { name: "계양구", dongs: ["효성동", "계산동", "작전동", "작전서운동", "계양동"] },
       seohae: { name: "서해구 (서구)", dongs: ["검암경서동", "연희동", "청라1동", "청라2동", "청라3동", "가정동", "신현원창동", "석남동", "가좌동"] },
-      geomdan: { name: "검단구", dongs: ["검단동", "불로대곡동", "원당동", "당하동", "오류왕길동", "마전동", "아라동", "금곡동"] },
+      geomdan: { name: "검단동", "불로대곡동", "원당동", "당하동", "오류왕길동", "마전동", "아라동", "금곡동"] },
       ganghwa: { name: "강화군", dongs: ["강화읍", "선원면", "불은면", "길상면", "화도면", "양도면", "내가면", "하점면", "양사면", "송해면", "교동면", "삼산면", "서도면"] },
       ongjin: { name: "옹진군", dongs: ["북도면", "연평면", "백령면", "대청면", "덕적면", "자월면", "영흥면"] }
     }
@@ -198,7 +198,7 @@ export default function MainClientUI() {
     setSelectedDong("");
   };
 
-  // 🌟 마사지 폴더 구조(/massage/[region]/[district]/...)로 정확히 연결
+  // 🌟 구 이름의 공백을 제거(replace(/\s+/g, ""))하여 404 에러 원천 차단
   const handleSearch = () => {
     if (!selectedDistrict) {
       alert("원하시는 지역(구/시/군)을 먼저 선택해주세요!");
@@ -207,10 +207,13 @@ export default function MainClientUI() {
     const districtObj = regionData[selectedRegion]?.districts[selectedDistrict];
     const districtName = districtObj ? districtObj.name : selectedDistrict;
     
+    // 🌟 공백 제거 ("용인시 기흥구" -> "용인시기흥구")
+    const cleanDistrict = districtName.replace(/\s+/g, "");
+    
     // 동이 선택되어 있으면 /massage/[region]/[district]/[dong] 으로 이동
     const targetUrl = selectedDong 
-      ? `/massage/${selectedRegion}/${encodeURIComponent(districtName)}/${encodeURIComponent(selectedDong)}`
-      : `/massage/${selectedRegion}/${encodeURIComponent(districtName)}`;
+      ? `/massage/${selectedRegion}/${encodeURIComponent(cleanDistrict)}/${encodeURIComponent(selectedDong)}`
+      : `/massage/${selectedRegion}/${encodeURIComponent(cleanDistrict)}`;
     
     window.location.href = targetUrl;
   };

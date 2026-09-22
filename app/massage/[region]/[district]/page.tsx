@@ -24,6 +24,36 @@ function safeDecode(str: string): string {
   return decoded.trim();
 }
 
+// 🌟 URL의 공백 제거된 구 이름을 원래의 띄어쓰기 포함 이름으로 복원하는 맵
+const districtNameMap: Record<string, string> = {
+  "용인시기흥구": "용인시 기흥구",
+  "용인시처인구": "용인시 처인구",
+  "용인시수지구": "용인시 수지구",
+  "수원시장안구": "수원시 장안구",
+  "수원시권선구": "수원시 권선구",
+  "수원시팔달구": "수원시 팔달구",
+  "수원시영통구": "수원시 영통구",
+  "성남시수정구": "성남시 수정구",
+  "성남시중원구": "성남시 중원구",
+  "성남시분당구": "성남시 분당구",
+  "고양시덕양구": "고양시 덕양구",
+  "고양시일산동구": "고양시 일산동구",
+  "고양시일산서구": "고양시 일산서구",
+  "부천시원미구": "부천시 원미구",
+  "부천시소사구": "부천시 소사구",
+  "부천시오정구": "부천시 오정구",
+  "안양시만안구": "안양시 만안구",
+  "안양시동안구": "안양시 동안구",
+  "안산시상록구": "안산시 상록구",
+  "안산시단원구": "안산시 단원구",
+  "서해구(서구)": "서해구 (서구)"
+};
+
+function getOriginalDistrictName(paramDistrict: string): string {
+  const decoded = safeDecode(paramDistrict);
+  return districtNameMap[decoded] || decoded;
+}
+
 // -------------------------------------------------------------
 // 🎯 1,000가지 고유 SEO 패턴 생성 로직 (구 단위 전용)
 // -------------------------------------------------------------
@@ -108,7 +138,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolvedParams = await params;
   const { region, district } = resolvedParams;
 
-  const districtName = safeDecode(district);
+  const districtName = getOriginalDistrictName(district); // 🌟 띄어쓰기 복원
   const regionName = region === "seoul" ? "서울" : region === "incheon" ? "인천" : "경기";
 
   const locationKeyword = `${regionName} ${districtName}`.trim();
@@ -122,7 +152,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const finalTitle = pattern.title(districtName);
   const finalDescription = pattern.desc(districtName, locationKeyword);
 
-  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(districtName)}`;
+  const cleanDistrictForUrl = districtName.replace(/\s+/g, "");
+  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}`;
 
   return {
     title: {
@@ -155,9 +186,11 @@ export default async function RegionalDistrictPage({ params }: PageProps) {
   const resolvedParams = await params;
   const { region, district } = resolvedParams;
 
-  const districtName = safeDecode(district);
+  const districtName = getOriginalDistrictName(district); // 🌟 띄어쓰기 복원
   const regionName = region === "seoul" ? "서울특별시" : region === "incheon" ? "인천광역시" : "경기도";
   const fullTitle = `${regionName} ${districtName}`;
+
+  const cleanDistrictForUrl = districtName.replace(/\s+/g, "");
 
   // 구 페이지에서 보여줄 추천 제휴 샵 목록 데이터 (5곳)
   const localShops = [
@@ -213,7 +246,7 @@ export default async function RegionalDistrictPage({ params }: PageProps) {
     "@type": "LocalBusiness",
     "name": `${fullTitle} 힐링 바디 테라피 제휴 안내 - 메트로힐`,
     "description": `${fullTitle} 지역 아로마 테라피, 타이, 스웨디시 제휴업체 정보 안내`,
-    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(districtName)}`,
+    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}`,
     "telephone": "0507-1280-3344",
     "address": {
       "@type": "PostalAddress",
@@ -263,7 +296,7 @@ export default async function RegionalDistrictPage({ params }: PageProps) {
                 className="bg-[#111114] border border-amber-500/20 hover:border-amber-400 rounded-2xl p-4 flex gap-4 items-center shadow-md transition-all group relative"
               >
                 <Link 
-                  href={`/massage/${region}/${encodeURIComponent(districtName)}/shop/${lShop.slug}`} 
+                  href={`/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/shop/${lShop.slug}`} 
                   className="absolute inset-0 z-10" 
                   aria-label={`${lShop.name} 상세페이지 보기`} 
                 />

@@ -132,11 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const [regionKey, regionVal] of Object.entries(regionData)) {
     for (const districtVal of Object.values(regionVal.districts)) {
-      const districtName = districtVal.name;
+      const rawDistrictName = districtVal.name;
+      const cleanDistrict = rawDistrictName.replace(/\s+/g, ""); // 🌟 공백 제거 ("용인시 기흥구" -> "용인시기흥구")
 
       // ① 구/시/군 단위 페이지 (예: /massage/seoul/서초구)
       regionRoutes.push({
-        url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(districtName)}`,
+        url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(cleanDistrict)}`,
         lastModified: new Date(),
         changeFrequency: 'daily',
         priority: 0.9,
@@ -145,7 +146,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // ② 구/시/군 단위 하위 샵 페이지 (예: /massage/seoul/서초구/shop/1)
       for (const shopId of shopIds) {
         regionalShopRoutes.push({
-          url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(districtName)}/shop/${shopId}`,
+          url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(cleanDistrict)}/shop/${shopId}`,
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -155,7 +156,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // ③ 하위 동 단위 페이지 (예: /massage/seoul/서초구/서초동)
       for (const dongName of districtVal.dongs) {
         regionRoutes.push({
-          url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}`,
+          url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(cleanDistrict)}/${encodeURIComponent(dongName)}`,
           lastModified: new Date(),
           changeFrequency: 'daily',
           priority: 0.7,
@@ -164,7 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         // ④ 동 단위 하위 샵 페이지 (예: /massage/seoul/서초구/서초동/shop/1)
         for (const shopId of shopIds) {
           regionalShopRoutes.push({
-            url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(districtName)}/${encodeURIComponent(dongName)}/shop/${shopId}`,
+            url: `${baseUrl}/massage/${regionKey}/${encodeURIComponent(cleanDistrict)}/${encodeURIComponent(dongName)}/shop/${shopId}`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.6,
