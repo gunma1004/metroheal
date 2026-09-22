@@ -106,6 +106,7 @@ const initialShops = [
   {
     id: 1,
     name: "한국미녀테라피",
+    slug: "miin-therapy",
     desc: "서울·경기·인천 전지역 신속 매칭, 정성 가득한 프리미엄 감성 바디 테라피 & 1:1 맞춤 케어",
     phone: "0507-1280-3299",
     price: "90,000원부터~",
@@ -114,6 +115,7 @@ const initialShops = [
   {
     id: 2,
     name: "오늘밤테라피",
+    slug: "night-therapy",
     desc: "최고급 천연 아로마 오일 블렌딩, 지친 일상을 깨우는 고품격 프라이빗 힐링 바디 테라피 전문",
     phone: "0507-1280-3191",
     price: "60,000원부터~",
@@ -122,6 +124,7 @@ const initialShops = [
   {
     id: 3,
     name: "주주홈타이",
+    slug: "juju-therapy",
     desc: "재방문율 1위, 철저한 위생 관리와 숙련된 테라피스트의 정통 바디 릴렉싱 프로그램",
     phone: "0507-1280-3180",
     price: "60,000원부터~",
@@ -130,6 +133,7 @@ const initialShops = [
   {
     id: 4,
     name: "한국골든테라피",
+    slug: "golden-therapy",
     desc: "전문 테라피스트의 VIP 집중 피로회복 솔루션, 수도권 어디서나 편안하게 만나는 맞춤 힐링",
     phone: "0507-1280-3361",
     price: "60,000원부터~",
@@ -138,6 +142,7 @@ const initialShops = [
   {
     id: 5,
     name: "퀸즈홈테라피",
+    slug: "queens-home-therapy",
     desc: "수도권 전역 빠른 안내, 검증된 전문 매니저의 힐링 테라피 & 프리미엄 바디 밸런스 프로그램",
     phone: "0507-1280-3222",
     price: "60,000원부터~",
@@ -193,7 +198,7 @@ export default function MainClientUI() {
     setSelectedDong("");
   };
 
-  // 🌟 구/동 디렉토리 구조로 즉시 연결
+  // 🌟 마사지 폴더 구조(/massage/[region]/[district]/...)로 정확히 연결
   const handleSearch = () => {
     if (!selectedDistrict) {
       alert("원하시는 지역(구/시/군)을 먼저 선택해주세요!");
@@ -202,10 +207,10 @@ export default function MainClientUI() {
     const districtObj = regionData[selectedRegion]?.districts[selectedDistrict];
     const districtName = districtObj ? districtObj.name : selectedDistrict;
     
-    // 동이 선택되어 있으면 /[region]/[district]/[dong] 으로 이동
+    // 동이 선택되어 있으면 /massage/[region]/[district]/[dong] 으로 이동
     const targetUrl = selectedDong 
-      ? `/${selectedRegion}/${encodeURIComponent(districtName)}/${encodeURIComponent(selectedDong)}`
-      : `/${selectedRegion}/${encodeURIComponent(districtName)}`;
+      ? `/massage/${selectedRegion}/${encodeURIComponent(districtName)}/${encodeURIComponent(selectedDong)}`
+      : `/massage/${selectedRegion}/${encodeURIComponent(districtName)}`;
     
     window.location.href = targetUrl;
   };
@@ -244,7 +249,7 @@ export default function MainClientUI() {
           </div>
         </section>
 
-        {/* 🌟 메인 추천 제휴 샵 (이동 링크 제거, 전화연결만 작동) */}
+        {/* 🌟 메인 추천 제휴 샵 (마사지 폴더 내 상점 상세 페이지로 이동하도록 링크 연결) */}
         <section className="space-y-6">
           <div className="text-center mb-4">
             <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">RECOMMENDED PARTNERS</p>
@@ -257,17 +262,23 @@ export default function MainClientUI() {
             {shops.map((lShop) => (
               <div 
                 key={lShop.id} 
-                className="bg-[#111114] border border-amber-500/20 rounded-2xl p-4 flex gap-4 items-center shadow-md"
+                className="bg-[#111114] border border-amber-500/20 rounded-2xl p-4 flex gap-4 items-center shadow-md relative group hover:border-amber-400 transition-all"
               >
-                {/* ❌ 샵 상세 이동 링크를 아예 두지 않음 */}
+                {/* 🌟 마사지 폴더 구조의 샵 상세 페이지로 연결되는 링크 */}
+                <Link 
+                  href={`/massage/seoul/%EC%84%9C%EC%B4%88%EA%B5%AC/shop/${lShop.slug}`} 
+                  className="absolute inset-0 z-10" 
+                  aria-label={`${lShop.name} 상세페이지 보기`} 
+                />
+
                 <img 
                   src={lShop.image} 
                   alt={lShop.name} 
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 flex-shrink-0" 
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 flex-shrink-0 group-hover:scale-105 transition-transform" 
                 />
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-sm md:text-base text-white truncate">
+                  <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
                     {lShop.name}
                   </h3>
                   <p className="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-snug">
@@ -277,7 +288,7 @@ export default function MainClientUI() {
                     <span className="text-xs font-black text-amber-400">{lShop.price}</span>
                     <a 
                       href={`tel:${lShop.phone.replace(/-/g, "")}`} 
-                      className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-colors active:scale-95 flex items-center gap-1"
+                      className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-colors active:scale-95 flex items-center gap-1 relative z-20"
                     >
                       <span>📞</span> 전화연결
                     </a>
@@ -408,7 +419,7 @@ export default function MainClientUI() {
             <div className="bg-[#101014] p-5 rounded-2xl border border-white/5 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-amber-400 font-black text-sm">★★★★★ 5.0</span>
-                <span className="text-[11px] text-gray-505">인천 송도 이용자</span>
+                <span className="text-[11px] text-gray-500">인천 송도 이용자</span>
               </div>
               <p className="text-xs text-gray-300 leading-relaxed">
                 &quot;플랫폼에 등록된 정보가 투명해서 좋았고 상담도 친절했습니다. 번거롭게 찾아다닐 필요 없이 편리하게 이용했습니다.&quot;
