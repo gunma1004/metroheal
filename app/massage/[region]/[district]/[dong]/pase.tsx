@@ -23,6 +23,36 @@ function safeDecode(str: string): string {
   }
 }
 
+// 🌟 URL의 공백 제거된 구 이름을 원래의 띄어쓰기 포함 이름으로 복원하는 맵
+const districtNameMap: Record<string, string> = {
+  "용인시기흥구": "용인시 기흥구",
+  "용인시처인구": "용인시 처인구",
+  "용인시수지구": "용인시 수지구",
+  "수원시장안구": "수원시 장안구",
+  "수원시권선구": "수원시 권선구",
+  "수원시팔달구": "수원시 팔달구",
+  "수원시영통구": "수원시 영통구",
+  "성남시수정구": "성남시 수정구",
+  "성남시중원구": "성남시 중원구",
+  "성남시분당구": "성남시 분당구",
+  "고양시덕양구": "고양시 덕양구",
+  "고양시일산동구": "고양시 일산동구",
+  "고양시일산서구": "고양시 일산서구",
+  "부천시원미구": "부천시 원미구",
+  "부천시소사구": "부천시 소사구",
+  "부천시오정구": "부천시 오정구",
+  "안양시만안구": "안양시 만안구",
+  "안양시동안구": "안양시 동안구",
+  "안산시상록구": "안산시 상록구",
+  "안산시단원구": "안산시 단원구",
+  "서해구(서구)": "서해구 (서구)"
+};
+
+function getOriginalDistrictName(paramDistrict: string): string {
+  const decoded = safeDecode(paramDistrict);
+  return districtNameMap[decoded] || decoded;
+}
+
 // -------------------------------------------------------------
 // 🎯 1,000가지 고유 SEO 패턴 생성 로직
 // -------------------------------------------------------------
@@ -106,7 +136,7 @@ const SEO_PATTERNS = Array.from({ length: 1000 }, (_, i) => {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const region = safeDecode(resolvedParams.region);
-  const district = safeDecode(resolvedParams.district);
+  const district = getOriginalDistrictName(resolvedParams.district); // 🌟 띄어쓰기 복원
   const dong = safeDecode(resolvedParams.dong);
 
   const regionName = region === "seoul" ? "서울" : region === "incheon" ? "인천" : "경기";
@@ -123,7 +153,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const finalTitle = pattern.title(simpleLocation);
   const finalDescription = pattern.desc(simpleLocation, locationKeyword);
 
-  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}`;
+  const cleanDistrictForUrl = district.replace(/\s+/g, "");
+  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dong)}`;
 
   return {
     title: { absolute: finalTitle },
@@ -151,11 +182,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function RegionalDongPage({ params }: PageProps) {
   const resolvedParams = await params;
   const region = safeDecode(resolvedParams.region);
-  const district = safeDecode(resolvedParams.district);
+  const district = getOriginalDistrictName(resolvedParams.district); // 🌟 띄어쓰기 복원
   const dong = safeDecode(resolvedParams.dong);
 
   const regionName = region === "seoul" ? "서울특별시" : region === "incheon" ? "인천광역시" : "경기도";
   const fullTitle = `${regionName} ${district} ${dong}`;
+
+  const cleanDistrictForUrl = district.replace(/\s+/g, "");
 
   const localShops = [
     { id: 1, slug: "miin-therapy", name: `✨ ${dong} 한국미녀테라피`, desc: "수도권 전지역 신속 매칭, 정성 가득한 프리미엄 감성 바디 테라피 & 1:1 맞춤 케어", phone: "0507-1280-3299", price: "90,000원부터~", image: "/shop1.jpg" },
@@ -170,7 +203,7 @@ export default async function RegionalDongPage({ params }: PageProps) {
     "@type": "LocalBusiness",
     "name": `${fullTitle} 힐링 바디 테라피 제휴 안내 - 메트로힐`,
     "description": `${fullTitle} 지역 아로마 테라피, 타이, 스웨디시 제휴업체 정보 안내`,
-    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}`,
+    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dong)}`,
     "telephone": "0507-1280-3344",
     "address": {
       "@type": "PostalAddress",
@@ -210,7 +243,7 @@ export default async function RegionalDongPage({ params }: PageProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {localShops.map((lShop) => (
               <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-400 rounded-2xl p-4 flex gap-4 items-center shadow-md transition-all group relative">
-                <Link href={`/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}/shop/${lShop.slug}`} className="absolute inset-0 z-10" aria-label={`${lShop.name} 상세페이지 보기`} />
+                <Link href={`/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dong)}/shop/${lShop.slug}`} className="absolute inset-0 z-10" aria-label={`${lShop.name} 상세페이지 보기`} />
                 <img src={lShop.image} alt={lShop.name} className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
@@ -232,7 +265,7 @@ export default async function RegionalDongPage({ params }: PageProps) {
         </section>
 
         <div className="text-center pt-2">
-          <Link href={`/massage/${region}/${encodeURIComponent(district)}`} className="text-xs text-gray-400 hover:text-amber-400 transition-colors font-semibold">
+          <Link href={`/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}`} className="text-xs text-gray-400 hover:text-amber-400 transition-colors font-semibold">
             ← {district} 목록으로 돌아가기
           </Link>
         </div>
