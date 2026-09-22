@@ -147,7 +147,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     ? safeDecode(resolvedParams.dong) 
     : (resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "");
 
-  const districtName = getOriginalDistrictName(district); // 🌟 띄어쓰기 복원
+  const districtName = getOriginalDistrictName(district);
   const regionName = region === "seoul" ? "서울" : region === "incheon" ? "인천" : "경기";
 
   const locationKeyword = `${regionName} ${districtName} ${dongName}`.trim();
@@ -201,7 +201,7 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
     ? safeDecode(resolvedParams.dong) 
     : (resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "");
 
-  const districtName = getOriginalDistrictName(district); // 🌟 띄어쓰기 복원
+  const districtName = getOriginalDistrictName(district);
   const regionName = region === "seoul" ? "서울특별시" : region === "incheon" ? "인천광역시" : "경기도";
   const fullTitle = `${regionName} ${districtName} ${dongName}`;
 
