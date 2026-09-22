@@ -7,59 +7,24 @@ interface PageProps {
     district: string;
     dong: string;
   }>;
-  searchParams: Promise<{
-    dong?: string;
-  }>;
 }
 
-// 🛠️ 이중 URL 인코딩까지 안전하게 풀어내는 디코더
+// 🛠️ 안전한 URL 디코더
 function safeDecode(str: string): string {
   if (!str) return "";
-  let decoded = str;
   try {
-    decoded = decodeURIComponent(decodeURIComponent(str));
+    return decodeURIComponent(decodeURIComponent(str)).trim();
   } catch {
     try {
-      decoded = decodeURIComponent(str);
+      return decodeURIComponent(str).trim();
     } catch {
-      decoded = str;
+      return str.trim();
     }
   }
-  return decoded.trim();
-}
-
-// 🌟 URL의 공백 제거된 구 이름을 원래의 띄어쓰기 포함 이름으로 복원하는 맵
-const districtNameMap: Record<string, string> = {
-  "용인시기흥구": "용인시 기흥구",
-  "용인시처인구": "용인시 처인구",
-  "용인시수지구": "용인시 수지구",
-  "수원시장안구": "수원시 장안구",
-  "수원시권선구": "수원시 권선구",
-  "수원시팔달구": "수원시 팔달구",
-  "수원시영통구": "수원시 영통구",
-  "성남시수정구": "성남시 수정구",
-  "성남시중원구": "성남시 중원구",
-  "성남시분당구": "성남시 분당구",
-  "고양시덕양구": "고양시 덕양구",
-  "고양시일산동구": "고양시 일산동구",
-  "고양시일산서구": "고양시 일산서구",
-  "부천시원미구": "부천시 원미구",
-  "부천시소사구": "부천시 소사구",
-  "부천시오정구": "부천시 오정구",
-  "안양시만안구": "안양시 만안구",
-  "안양시동안구": "안양시 동안구",
-  "안산시상록구": "안산시 상록구",
-  "안산시단원구": "안산시 단원구",
-  "서해구(서구)": "서해구 (서구)"
-};
-
-function getOriginalDistrictName(paramDistrict: string): string {
-  const decoded = safeDecode(paramDistrict);
-  return districtNameMap[decoded] || decoded;
 }
 
 // -------------------------------------------------------------
-// 🎯 1,000가지 고유 SEO 패턴 생성 로직 (동 단위 전용)
+// 🎯 1,000가지 고유 SEO 패턴 생성 로직
 // -------------------------------------------------------------
 const titleTemplates = [
   (dong: string) => `${dong} 지역 맞춤형 스웨디시 마사지 안내 - 메트로힐`,
@@ -138,20 +103,16 @@ const SEO_PATTERNS = Array.from({ length: 1000 }, (_, i) => {
   return { title: titleFunc, desc: descFunc };
 });
 
-export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
+  const region = safeDecode(resolvedParams.region);
+  const district = safeDecode(resolvedParams.district);
+  const dong = safeDecode(resolvedParams.dong);
 
-  const { region, district } = resolvedParams;
-  const dongName = resolvedParams.dong 
-    ? safeDecode(resolvedParams.dong) 
-    : (resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "");
-
-  const districtName = getOriginalDistrictName(district);
   const regionName = region === "seoul" ? "서울" : region === "incheon" ? "인천" : "경기";
 
-  const locationKeyword = `${regionName} ${districtName} ${dongName}`.trim();
-  const simpleLocation = `${districtName} ${dongName}`.trim();
+  const locationKeyword = `${regionName} ${district} ${dong}`.trim();
+  const simpleLocation = `${district} ${dong}`.trim();
 
   const charSum = (locationKeyword + region)
     .split("")
@@ -162,17 +123,12 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const finalTitle = pattern.title(simpleLocation);
   const finalDescription = pattern.desc(simpleLocation, locationKeyword);
 
-  const cleanDistrictForUrl = districtName.replace(/\s+/g, "");
-  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dongName)}`;
+  const canonicalUrl = `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}`;
 
   return {
-    title: {
-      absolute: finalTitle,
-    },
+    title: { absolute: finalTitle },
     description: finalDescription,
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    alternates: { canonical: canonicalUrl },
     keywords: [
       `${simpleLocation} 마사지`,
       `${simpleLocation} 출장마사지`,
@@ -192,68 +148,21 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-export default async function RegionalDongPage({ params, searchParams }: PageProps) {
+export default async function RegionalDongPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
+  const region = safeDecode(resolvedParams.region);
+  const district = safeDecode(resolvedParams.district);
+  const dong = safeDecode(resolvedParams.dong);
 
-  const { region, district } = resolvedParams;
-  const dongName = resolvedParams.dong 
-    ? safeDecode(resolvedParams.dong) 
-    : (resolvedSearchParams.dong ? safeDecode(resolvedSearchParams.dong) : "");
-
-  const districtName = getOriginalDistrictName(district);
   const regionName = region === "seoul" ? "서울특별시" : region === "incheon" ? "인천광역시" : "경기도";
-  const fullTitle = `${regionName} ${districtName} ${dongName}`;
+  const fullTitle = `${regionName} ${district} ${dong}`;
 
-  const cleanDistrictForUrl = districtName.replace(/\s+/g, "");
-
-  // 동 단위 추천 제휴업체 목록 데이터 (5곳)
   const localShops = [
-    {
-      id: 1,
-      slug: "miin-therapy",
-      name: `✨ ${dongName} 한국미녀테라피`,
-      desc: "수도권 전지역 신속 매칭, 정성 가득한 프리미엄 감성 바디 테라피 & 1:1 맞춤 케어",
-      phone: "0507-1280-3299",
-      price: "90,000원부터~",
-      image: "/shop1.jpg"
-    },
-    {
-      id: 2,
-      slug: "night-therapy",
-      name: `🌙 ${dongName} 오늘밤테라피`,
-      desc: "최고급 천연 아로마 오일 블렌딩, 지친 일상을 깨우는 고품격 프라이빗 힐링 바디 테라피 전문",
-      phone: "0507-1280-3191",
-      price: "60,000원부터~",
-      image: "/shop2.jpg"
-    },
-    {
-      id: 3,
-      slug: "juju-therapy",
-      name: `💎 ${dongName} 주주홈타이`,
-      desc: "재방문율 1위, 철저한 위생 관리와 숙련된 테라피스트의 정통 바디 릴렉싱 프로그램",
-      phone: "0507-1280-3180",
-      price: "60,000원부터~",
-      image: "/shop3.jpg"
-    },
-    {
-      id: 4,
-      slug: "golden-therapy",
-      name: `🔥 ${dongName} 한국골든테라피`,
-      desc: "전문 테라피스트의 VIP 집중 피로회복 솔루션, 수도권 어디서나 편안하게 만나는 맞춤 힐링",
-      phone: "0507-1280-3361",
-      price: "60,000원부터~",
-      image: "/shop4.jpg"
-    },
-    {
-      id: 5,
-      slug: "queens-home-therapy",
-      name: `👑 ${dongName} 퀸즈홈테라피`,
-      desc: "수도권 전역 빠른 안내, 검증된 전문 매니저의 힐링 테라피 & 프리미엄 바디 밸런스 프로그램",
-      phone: "0507-1280-3222",
-      price: "60,000원부터~",
-      image: "/shop5.jpg"
-    }
+    { id: 1, slug: "miin-therapy", name: `✨ ${dong} 한국미녀테라피`, desc: "수도권 전지역 신속 매칭, 정성 가득한 프리미엄 감성 바디 테라피 & 1:1 맞춤 케어", phone: "0507-1280-3299", price: "90,000원부터~", image: "/shop1.jpg" },
+    { id: 2, slug: "night-therapy", name: `🌙 ${dong} 오늘밤테라피`, desc: "최고급 천연 아로마 오일 블렌딩, 지친 일상을 깨우는 고품격 프라이빗 힐링 바디 테라피 전문", phone: "0507-1280-3191", price: "60,000원부터~", image: "/shop2.jpg" },
+    { id: 3, slug: "juju-therapy", name: `💎 ${dong} 주주홈타이`, desc: "재방문율 1위, 철저한 위생 관리와 숙련된 테라피스트의 정통 바디 릴렉싱 프로그램", phone: "0507-1280-3180", price: "60,000원부터~", image: "/shop3.jpg" },
+    { id: 4, slug: "golden-therapy", name: `🔥 ${dong} 한국골든테라피`, desc: "전문 테라피스트의 VIP 집중 피로회복 솔루션, 수도권 어디서나 편안하게 만나는 맞춤 힐링", phone: "0507-1280-3361", price: "60,000원부터~", image: "/shop4.jpg" },
+    { id: 5, slug: "queens-home-therapy", name: `👑 ${dong} 퀸즈홈테라피`, desc: "수도권 전역 빠른 안내, 검증된 전문 매니저의 힐링 테라피 & 프리미엄 바디 밸런스 프로그램", phone: "0507-1280-3222", price: "60,000원부터~", image: "/shop5.jpg" }
   ];
 
   const jsonLd = {
@@ -261,11 +170,11 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
     "@type": "LocalBusiness",
     "name": `${fullTitle} 힐링 바디 테라피 제휴 안내 - 메트로힐`,
     "description": `${fullTitle} 지역 아로마 테라피, 타이, 스웨디시 제휴업체 정보 안내`,
-    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dongName)}`,
+    "url": `https://metroheal.netlify.app/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}`,
     "telephone": "0507-1280-3344",
     "address": {
       "@type": "PostalAddress",
-      "addressLocality": dongName,
+      "addressLocality": dong,
       "addressRegion": regionName,
       "addressCountry": "KR"
     }
@@ -273,14 +182,9 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
 
   return (
     <div className="bg-[#070709] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black pb-24">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <main className="max-w-4xl mx-auto px-4 py-8 w-full flex-1 space-y-10">
-        
-        {/* 상단 지역 대표 배너 */}
         <section className="relative rounded-3xl overflow-hidden border border-amber-500/35 shadow-[0_0_40px_rgba(245,158,11,0.12)] bg-[#141418]">
           <div className="p-6 md:p-10 space-y-2">
             <span className="text-amber-400 text-xs font-black tracking-widest uppercase mb-1 block">
@@ -295,7 +199,6 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
           </div>
         </section>
 
-        {/* 🌟 동 단위 추천 제휴업체 목록 섹션 */}
         <section className="space-y-6">
           <div className="text-center">
             <p className="text-xs text-amber-400 font-bold tracking-widest uppercase">RECOMMENDED PARTNERS</p>
@@ -306,20 +209,9 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {localShops.map((lShop) => (
-              <div 
-                key={lShop.id} 
-                className="bg-[#111114] border border-amber-500/20 hover:border-amber-400 rounded-2xl p-4 flex gap-4 items-center shadow-md transition-all group relative"
-              >
-                <Link 
-                  href={`/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}/${encodeURIComponent(dongName)}/shop/${lShop.slug}`} 
-                  className="absolute inset-0 z-10" 
-                  aria-label={`${lShop.name} 상세페이지 보기`} 
-                />
-                <img 
-                  src={lShop.image} 
-                  alt={lShop.name} 
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" 
-                />
+              <div key={lShop.id} className="bg-[#111114] border border-amber-500/20 hover:border-amber-400 rounded-2xl p-4 flex gap-4 items-center shadow-md transition-all group relative">
+                <Link href={`/massage/${region}/${encodeURIComponent(district)}/${encodeURIComponent(dong)}/shop/${lShop.slug}`} className="absolute inset-0 z-10" aria-label={`${lShop.name} 상세페이지 보기`} />
+                <img src={lShop.image} alt={lShop.name} className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-extrabold text-sm md:text-base text-white truncate group-hover:text-amber-400 transition-colors">
                     {lShop.name}
@@ -329,10 +221,7 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
                   </p>
                   <div className="mt-2.5 flex items-center justify-between">
                     <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{lShop.price}</span>
-                    <a 
-                      href={`tel:${lShop.phone.replace(/-/g, "")}`} 
-                      className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-all transform active:scale-95 relative z-20 flex items-center gap-1"
-                    >
+                    <a href={`tel:${lShop.phone.replace(/-/g, "")}`} className="bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow transition-all transform active:scale-95 relative z-20 flex items-center gap-1">
                       <span>📞</span> 전화예약
                     </a>
                   </div>
@@ -342,21 +231,9 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
           </div>
         </section>
 
-        {/* 건강 웰니스 칼럼 섹션 */}
-        <section className="bg-[#0e0e12] p-6 md:p-8 rounded-3xl border border-white/10 space-y-4">
-          <h3 className="text-base md:text-lg font-bold text-amber-400 flex items-center gap-2">
-            <span>🌿</span> {fullTitle} 일상 피로회복 & 릴렉싱 웰니스 팁
-          </h3>
-          <div className="text-xs text-gray-300 space-y-3 leading-relaxed">
-            <p>
-              현대 직장인들이 장시간 앉아서 근무하거나 전자기기를 지속적으로 이용할 경우, 목 주변 근육과 어깨 승모근이 경직되어 만성 피로와 결림을 유발하기 쉽습니다. 규칙적인 전신 스트레칭과 맞춤형 바디 테라피는 체내 순환을 촉진하고 심신 안정에 도움을 줍니다.
-            </p>
-          </div>
-        </section>
-
         <div className="text-center pt-2">
-          <Link href={`/massage/${region}/${encodeURIComponent(cleanDistrictForUrl)}`} className="text-xs text-gray-400 hover:text-amber-400 transition-colors font-semibold">
-            ← {districtName} 목록으로 돌아가기
+          <Link href={`/massage/${region}/${encodeURIComponent(district)}`} className="text-xs text-gray-400 hover:text-amber-400 transition-colors font-semibold">
+            ← {district} 목록으로 돌아가기
           </Link>
         </div>
       </main>
@@ -364,10 +241,7 @@ export default async function RegionalDongPage({ params, searchParams }: PagePro
       <footer className="bg-[#040406] border-t border-white/10 py-10 text-center text-gray-500 text-xs mt-auto">
         <div className="max-w-4xl mx-auto px-4 space-y-4">
           <div>
-            <a 
-              href="tel:0507-1280-3344" 
-              className="inline-flex items-center gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-amber-400 font-bold px-4 py-2 rounded-xl border border-amber-500/30 transition-all text-xs shadow-md"
-            >
+            <a href="tel:0507-1280-3344" className="inline-flex items-center gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-amber-400 font-bold px-4 py-2 rounded-xl border border-amber-500/30 transition-all text-xs shadow-md">
               <span>🤝</span> 메트로힐 제휴 문의 (0507-1280-3344)
             </a>
           </div>
