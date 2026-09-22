@@ -174,7 +174,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   ];
 
   const descriptionVariants = [
-    `${currentRegion} 24시 신속 방문 출장 타이 마사지 전문 ${shop.cleanName}. 선입금 없는 100% 후불제로 안심하고 이용하세요.`,
+    `${currentRegion} 24시 신속 방문 출장 마사지 전문 ${shop.cleanName}. 선입금 없는 100% 후불제로 안심하고 이용하세요.`,
     `${currentRegion} 전지역 출장 아로마 마사지 제휴 안내. 최고급 천연 오일로 전신 피로를 부드럽게 풀어드립니다.`,
     `${currentRegion} 맞춤형 출장 릴렉스 마사지 솔루션. 숙련된 테라피스트의 손길로 지친 일상의 활력을 되찾아보세요.`,
     `${currentRegion} 출장 스웨디시 마사지 예약 가이드. 프라이빗한 공간에서 온전한 쉼과 휴식을 선사하는 ${shop.cleanName}.`,
@@ -193,7 +193,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `${currentRegion} 딥릴렉스 테라피로 피로를 날려주는 출장 마사지. 신속하고 안전한 방문 서비스를 제공합니다.`,
     `${currentRegion} 소프트한 감성 터치로 힐링을 드리는 출장 바디 마사지. 지친 하루 끝 완벽한 릴렉싱.`,
     `${currentRegion} 쾌적하고 안심할 수 있는 방문 마사지 서비스. ${shop.cleanName}이 정성을 다해 케어해 드립니다.`,
-    `${currentRegion} 최고급 명품 스웨디시 출장 마사지 가이드. 감미로운 터치와 포근한 휴식의 만남.`,
+    `${currentRegion} 최고급 명품 출장 스웨디시 마사지 가이드. 감미로운 터치와 포근한 휴식의 만남.`,
     `${currentRegion} 고객 체형에 맞춘 커스텀 출장 마사지. 뭉친 부위를 정확히 파악하여 개운하게 풀어드립니다.`,
     `${currentRegion} 심야 시간에도 신속하게 달려가는 24시 출장 마사지. 수도권 전지역 빠른 도착 보장.`,
     `${currentRegion} 베테랑 전문 테라피스트의 품격 있는 출장 마사지. 믿을 수 있는 1:1 방문 케어.`,
