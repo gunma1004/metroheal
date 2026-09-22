@@ -62,15 +62,15 @@ export default function NavigationHeader() {
               <span className="text-[10px] text-amber-400">▼</span>
             </button>
 
-            {isRegionOpen && (
+           {isRegionOpen && (
               <div className="absolute top-full left-0 w-36 bg-[#121215] border border-amber-500/30 rounded-2xl shadow-2xl py-2 space-y-1 text-xs z-50">
-                <Link href="/seoul/서울특별시" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
+                <Link href="/massage/seoul" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
                   📍 서울 권역
                 </Link>
-                <Link href="/gyeonggi/경기도" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
+                <Link href="/massage/gyeonggi" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
                   📍 경기 권역
                 </Link>
-                <Link href="/incheon/인천광역시" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
+                <Link href="/massage/incheon" className="block px-4 py-2 hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
                   📍 인천 권역
                 </Link>
               </div>
