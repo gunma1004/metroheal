@@ -141,9 +141,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const currentRegion = parseLocationText(resolvedParams.region, resolvedParams.district, resolvedParams.dong);
 
   // 🌟 고유 해시 기반 인덱스 추출 (1,000여 가지 순환 조합 유도)
-  const charSumTitle = (currentRegion + shop.cleanName + targetId + "title_salt_no_direct").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const charSumDesc = (currentRegion + shop.cleanName + targetId + "desc_salt_no_direct").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
+  const uniqueSalt = `${currentRegion}_${shop.cleanName}_${targetId}_unique_key`;
+  const charSumTitle = uniqueSalt.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const charSumDesc = (uniqueSalt + "_desc").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   // 1. 타이틀 풀 ("출장"과 "마사지" 사이에 다른 단어들이 들어가 절대 직접 붙지 않도록 구성)
   const titleVariants = [
     `${currentRegion} 출장 전문 타이 및 아로마 마사지 예약 - ${shop.cleanName}`,
@@ -192,8 +192,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `예약부터 방문까지 철저한 프라이버시 보호가 보장되는 ${currentRegion} 힐링 공간. ${shop.cleanName}과 함께 언제든지 편안한 출장 서비스와 아로마 마사지를 누려보세요.`
   ];
 
-  const tIndex = (charSumTitle + targetId.charCodeAt(0) * 19) % titleVariants.length;
-  const dIndex = (charSumDesc + targetId.charCodeAt(0) * 29) % descriptionVariants.length;
+  const tIndex = (charSumTitle + Number(targetId) * 37) % titleVariants.length;
+  const dIndex = (charSumDesc + Number(targetId) * 43) % descriptionVariants.length;
 
   const pageTitle = titleVariants[tIndex];
   const pageDescription = descriptionVariants[dIndex];

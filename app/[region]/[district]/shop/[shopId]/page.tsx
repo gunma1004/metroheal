@@ -184,7 +184,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `${currentRegion} 1:1 커스텀 출장 릴렉스 마사지 제휴처. 청결하고 쾌적한 힐링 서비스를 약속드립니다.`,
     `${currentRegion} 건식 스트레칭 및 아로마 복합 출장 마사지 코스 안내. 투명한 요금과 친절한 상담 상시 대기 중.`,
     `${currentRegion} 프리미엄 감성 출장 마사지 24시간 안내. ${shop.cleanName}의 정성스러운 바디 밸런스 케어.`,
-    `${currentRegion} 순환 케어 중심의 출장 마사지 프로그램. 림프 흐름을 원활하게 돕는 체계적인 바디 관리.`,
+    `${currentRegion} 순환 케어 중심의 출장마사지 프로그램. 림프 흐름을 원활하게 돕는 체계적인 바디 관리.`,
     `${currentRegion} 스트레스 해소에 특화된 출장 힐링 마사지. 지친 심신에 활력을 불어넣는 전문 힐러 방문.`,
     `${currentRegion} 프라이빗 1인 맞춤 출장 마사지. 이동의 번거로움 없이 편안한 휴식 시간을 누려보세요.`,
     `${currentRegion} 바디 밸런스 회복 출장 마사지 제휴샵 ${shop.cleanName}. 철저한 위생 관리와 품격 있는 서비스.`,
@@ -196,14 +196,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `${currentRegion} 최고급 명품 출장 스웨디시 마사지 가이드. 감미로운 터치와 포근한 휴식의 만남.`,
     `${currentRegion} 고객 체형에 맞춘 커스텀 출장 마사지. 뭉친 부위를 정확히 파악하여 개운하게 풀어드립니다.`,
     `${currentRegion} 심야 시간에도 신속하게 달려가는 24시 출장 마사지. 수도권 전지역 빠른 도착 보장.`,
-    `${currentRegion} 베테랑 전문 테라피스트의 품격 있는 출장 마사지. 믿을 수 있는 1:1 방문 케어.`,
+    `${currentRegion} 베테랑 전문 테라피스트의 품격 있는 출장마사지. 믿을 수 있는 1:1 방문 케어.`,
     `${currentRegion} 뻐근한 몸을 시원하게 늘려주는 정통 스트레칭 출장 타이 마사지. 활력 충전 완료.`,
     `${currentRegion} 하이엔드 감성 힐링 출장 마사지 안내. 섬세한 테크닉으로 전신 긴장을 완벽 해소합니다.`,
-    `${currentRegion} VVIP 전신 올인원 출장 마사지 코스. 타이와 아로마를 동시에 누리는 프리미엄 패키지.`,
+    `${currentRegion} VVIP 전신 올인원 출장마사지 코스. 타이와 아로마를 동시에 누리는 프리미엄 패키지.`,
     `${currentRegion} 묵은 피로를 말끔히 비워내는 힐링 출장 마사지. 내 집에서 편안하게 즐기는 고품격 스파.`,
     `${currentRegion} 안심 방문 릴렉싱 출장 마사지 제휴처 ${shop.cleanName}. 친절하고 정직한 서비스 제공.`,
     `${currentRegion} 천연 아로마 에센셜 오일로 피부까지 케어하는 프리미엄 출장 마사지 프로그램.`,
-    `${currentRegion} 일상의 품격을 높여주는 시그니처 웰니스 출장 마사지. 언제 어디서나 편안하게 예약하세요.`
+    `${currentRegion} 일상의 품격을 높여주는 시그니처 웰니스 출장마사지. 언제 어디서나 편안하게 예약하세요.`
   ];
 
   const pageTitle = titleVariants[variantIndex];
